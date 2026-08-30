@@ -1,0 +1,7 @@
+# Analyzer for the SaHayak Flutter app.
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - web/**

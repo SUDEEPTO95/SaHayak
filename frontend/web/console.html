@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>SaHayak Console · blood help nearby</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Syne:wght@600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/app/sahayak.css?v=pause"/>
+  <script src="/app/sahayak-block.js?v=pause"></script>
+</head>
+<body>
+<div class="orb a"></div><div class="orb b"></div>
+<div class="wrap" style="max-width:1100px">
+  <div class="mark">
+      <div class="pulse" aria-hidden="true"><span><svg class="drops" viewBox="0 0 32 28" fill="#e8c07a"><path d="M16 3.2C16 3.2 10.4 11.2 10.4 16.2a5.6 5.6 0 0 0 11.2 0C21.6 11.2 16 3.2 16 3.2z"/><path opacity=".82" d="M7.2 11C7.2 11 4.2 16 4.2 18.4a3 3 0 0 0 6 0C10.2 16 7.2 11 7.2 11z"/><path opacity=".65" d="M25.4 13C25.4 13 23.6 16.6 23.6 18.2a2.1 2.1 0 0 0 4.2 0C27.8 16.6 25.4 13 25.4 13z"/></svg></span></div>
+    <div>
+      <h1 id="orgTitle">SaHayak</h1>
+      <p class="tagline">blood help nearby</p>
+      <p class="hint">For hospitals, NGOs and offices — not the public home screen.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <section class="glass">
+      <p class="tiny">SIGN IN · EMAIL CODE</p>
+      <label>Work email</label>
+      <input id="email" value="owner@sahayak.local"/>
+      <button class="cta trust" type="button" onclick="otp()">Send code</button>
+      <label>Code</label>
+      <input id="code"/>
+      <button class="cta sos" type="button" onclick="verify()">Open the hospital board</button>
+      <p class="strip hidden" id="out"></p>
+    </section>
+    <section class="glass">
+      <p class="tiny">LIVE CITY · OPENSTREETMAP</p>
+      <div id="map"></div>
+    </section>
+    <section class="glass">
+      <p class="tiny">WHAT MATTERS TODAY</p>
+      <div id="kpis" class="chips"></div>
+      <p class="strip hidden" id="sum"></p>
+      <table class="board" id="board"><thead><tr><th>Group</th><th>Hospital</th><th>Units</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </section>
+    <section class="glass">
+      <p class="tiny">DIRECTORY · HOURS</p>
+      <p class="strip" id="dir">Sign in to load verified places.</p>
+      <label>Add place (owner)</label>
+      <input id="newPlace" placeholder="Name"/>
+      <button class="cta ghost" type="button" onclick="addPlace()">Add hospital to directory</button>
+    </section>
+    <section class="glass">
+      <p class="tiny">CAMPS · QR · DISASTER</p>
+      <button class="cta trust" type="button" onclick="makeCamp()">Announce Sunday camp</button>
+      <button class="cta ghost" type="button" onclick="makeQr()">Ward window poster</button>
+      <button class="cta sos" type="button" onclick="disaster()">Toggle disaster mode</button>
+      <button class="cta ghost" type="button" onclick="festival()">Festival hush</button>
+      <button class="cta ghost" type="button" onclick="heat()">Gold fog (no names)</button>
+      <button class="cta ghost" type="button" onclick="brand()">White-label: SaHayak for SSKM</button>
+      <p class="strip hidden" id="ops"></p>
+      <div id="poster" class="poster-sheet hidden"></div>
+      <p class="fog-note">Heat is gold fog on the map. No names. No phones.</p>
+    </section>
+  </div>
+  <p class="tiny" style="margin-top:20px"><a href="/app/">Citizen app (Need blood / I can donate)</a> · <a href="/privacy">Privacy</a></p>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let token="", map, disasterOn=false, festOn=false;
+function h(){return {Authorization:"Bearer "+token,"Content-Type":"application/json"};}
+function say(id,t){ const n=document.getElementById(id); n.textContent=t; n.classList.remove("hidden"); }
+async function otp(){
+  const r=await fetch("/v1/auth/otp/request",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email.value})});
+  const j=await r.json(); code.value=j.dev_otp||"";
+  say("out", j.dev_otp?"Code filled for this computer. In production it arrives by email.":(j.human||"Code sent."));
+}
+async function verify(){
+  const r=await fetch("/v1/auth/otp/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email.value,code:code.value})});
+  const j=await r.json(); token=j.token;
+  if(!token){ say("out", j.human||"Could not sign in. Use the owner email on this computer."); return; }
+  if(j.role!=="owner" && j.role!=="tenant_admin"){ say("out","This board is for hospitals. Citizens use the two home buttons."); return; }
+  await refresh();
+}
+async function refresh(){
+  const s=await (await fetch("/v1/console/summary",{headers:h()})).json();
+  if(s.error){ say("out", s.human||"Forbidden"); return; }
+  const t=s.tenant||{};
+  orgTitle.textContent = t.name || "SaHayak";
+  kpis.innerHTML=`<span class="chip on">Open ${s.open_requests}</span><span class="chip">Donors ${s.donors}</span><span class="chip">Camps ${s.camps}</span><span class="chip">Directory ${s.directory}</span>`;
+  say("sum","Disaster is a district switch. Heatmap is this tenant only. Families never see this board on home.");
+  const tb=board.querySelector("tbody");
+  tb.innerHTML=(s.open_rows||[]).map(r=>`<tr><td>${r.group||""}</td><td>${r.hospital||""}</td><td>${r.units||""}</td><td>${r.status}${r.last_unit?" · last-unit":""}</td></tr>`).join("") || "<tr><td colspan=4>No open requests</td></tr>";
+  const d=await (await fetch("/v1/directory",{headers:h()})).json();
+  dir.textContent=(d.entries||[]).map(e=>e.name+" · "+(e.hours||"")+" · "+(e.state||"")+" · "+(e.phone||"")).join("\n")||"Empty.";
+  if(!map){ map=L.map("map").setView([22.57,88.36],11); L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map); }
+  (s.open_rows||[]).forEach(r=>{ if(r.lat) L.circleMarker([r.lat,r.lng],{radius:9,color:"#c42b4a"}).addTo(map).bindPopup((r.group||"")+" · "+(r.hospital||"")); });
+  (d.entries||[]).forEach(e=>{ if(e.lat) L.marker([e.lat,e.lng]).addTo(map).bindPopup(e.name+"<br>"+(e.hours||"")); });
+}
+async function addPlace(){
+  await fetch("/v1/directory",{method:"POST",headers:h(),body:JSON.stringify({kind:"hospital",name:newPlace.value||"New ward",state:"West Bengal",hours:"08:00-20:00",lat:22.56,lng:88.35,phone:"033-000000",open_now:true})});
+  await refresh();
+}
+async function makeCamp(){
+  const r=await fetch("/v1/camps",{method:"POST",headers:h(),body:JSON.stringify({name:"Sunday maidan camp",when:"Sunday 9am",lat:22.57,lng:88.34})});
+  const j=await r.json(); say("ops", j.ok?"Camp announced. Donors can book from More.":(j.human||"Need owner login"));
+  await refresh();
+}
+async function makeQr(){
+  const r=await fetch("/v1/hospital-qr",{method:"POST",headers:h(),body:JSON.stringify({hospital_name:"SSKM",ward:"7"})});
+  const j=await r.json();
+  if(!j.code){ say("ops", j.human||"Owner only"); return; }
+  poster.classList.remove("hidden");
+  poster.innerHTML = `<p class="tiny" style="color:#8B1E3F">WARD WINDOW</p><h3>SaHayak</h3><p>blood help nearby</p><p><strong>${j.poster_text||j.code}</strong></p><p>Scan or open<br>/app/?tour=need&amp;hosp=SSKM&amp;ward=7</p><p class="tiny">Family Ring first. No phone on the map.</p>`;
+  say("ops", "Print this gold card for the blood-bank window.");
+}
+async function festival(){
+  festOn=!festOn;
+  const r=await fetch("/v1/festival-hush",{method:"POST",headers:h(),body:JSON.stringify({on:festOn,tenant_id:"public"})});
+  const j=await r.json(); say("ops", j.human||("Festival hush "+(festOn?"on":"off")));
+}
+async function disaster(){
+  disasterOn=!disasterOn;
+  const r=await fetch("/v1/disaster-mode",{method:"POST",headers:h(),body:JSON.stringify({on:disasterOn,tenant_id:"public"})});
+  const j=await r.json(); say("ops", "Disaster mode "+(disasterOn?"ON":"OFF")+". Citizen home still two buttons.");
+}
+async function heat(){
+  const j=await (await fetch("/v1/heatmap",{headers:h()})).json();
+  say("ops", j.human||"Gold fog only.");
+  (j.fog||[]).forEach(c=>{
+    if(map && c.lat) L.circle([c.lat,c.lng],{radius:400+40*(c.n||1),color:"#e8c07a",fillColor:"#e8c07a",fillOpacity:0.22,weight:1}).addTo(map);
+  });
+}
+async function brand(){
+  const j=await (await fetch("/v1/console/branding",{method:"POST",headers:h(),body:JSON.stringify({name:"SaHayak for SSKM",color:"#8B1E3F",subtitle:"blood help nearby"})})).json();
+  say("ops", j.human||"Saved");
+  await refresh();
+}
+</script>
+</body>
+</html>

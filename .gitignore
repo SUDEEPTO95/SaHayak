@@ -1,0 +1,43 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Python caches and local runtime data
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Flutter/Dart and Android generated files
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+coverage/
+android/.gradle/
+android/local.properties
+android/key.properties
+android/*.jks
+android/*.keystore
+**/android/key.properties
+**/android/*.jks
+**/android/*.keystore
+
+# Local persisted runtime data
+middleware/data/store.json
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp

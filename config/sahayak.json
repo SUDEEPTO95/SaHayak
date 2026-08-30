@@ -1,0 +1,51 @@
+{
+  "product_name": "SaHayak",
+  "tagline": "blood help nearby",
+  "android_application_id": "app.sahayak.india",
+  "owner_email": "owner@sahayak.local",
+  "maps": { "provider": "osm" },
+  "otp": { "channel": "email", "ttl_seconds": 300, "echo_in_dev": true },
+  "matching": {
+    "radius_km_steps": [10, 25, 50],
+    "wait_before_escalate_minutes_critical": 15,
+    "wait_before_escalate_minutes_scheduled": 120,
+    "ping_rest_hours": 24
+  },
+  "requests": { "ttl_hours": 48, "max_open_per_user_per_day": 5 },
+  "cooling": { "days_after_whole_blood": 90 },
+  "cities": {
+    "Kolkata": [22.5726, 88.3639],
+    "Howrah": [22.5958, 88.2636],
+    "Delhi": [28.6139, 77.2090],
+    "Mumbai": [19.0760, 72.8777],
+    "Chennai": [13.0827, 80.2707],
+    "Bengaluru": [12.9716, 77.5946],
+    "Hyderabad": [17.3850, 78.4867],
+    "Pune": [18.5204, 73.8567],
+    "Ahmedabad": [23.0225, 72.5714],
+    "Lucknow": [26.8467, 80.9462]
+  },
+  "stations": {
+    "Howrah": [22.5830, 88.3426],
+    "Sealdah": [22.5670, 88.3700],
+    "New Delhi": [28.6420, 77.2190]
+  },
+  "blood_groups": ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+  "components": ["whole", "platelets", "plasma"],
+  "compatibility_recipient_to_donors": {
+    "O-": ["O-"],
+    "O+": ["O-", "O+"],
+    "A-": ["O-", "A-"],
+    "A+": ["O-", "O+", "A-", "A+"],
+    "B-": ["O-", "B-"],
+    "B+": ["O-", "O+", "B-", "B+"],
+    "AB-": ["O-", "A-", "B-", "AB-"],
+    "AB+": ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"]
+  },
+  "flags": {
+    "ai_enabled": false,
+    "whatsapp_enabled": false,
+    "google_maps_enabled": false,
+    "fcm_enabled": false
+  }
+}

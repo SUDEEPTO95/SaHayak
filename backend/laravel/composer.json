@@ -1,0 +1,12 @@
+{
+  "name": "sahayak/api",
+  "description": "SaHayak PHP domain + BFF proxy (same /v1 as Python middleware)",
+  "require": {
+    "php": "^8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}

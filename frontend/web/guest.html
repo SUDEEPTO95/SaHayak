@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Family status · SaHayak</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Syne:wght@600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/app/sahayak.css?v=craft"/>
+</head>
+<body>
+<div class="orb a"></div><div class="orb b"></div>
+<div class="wrap">
+  <div class="mark">
+    <div class="pulse" aria-hidden="true"><span><svg class="drops" viewBox="0 0 32 28" fill="#e8c07a"><path d="M16 3.2C16 3.2 10.4 11.2 10.4 16.2a5.6 5.6 0 0 0 11.2 0C21.6 11.2 16 3.2 16 3.2z"/><path opacity=".82" d="M7.2 11C7.2 11 4.2 16 4.2 18.4a3 3 0 0 0 6 0C10.2 16 7.2 11 7.2 11z"/><path opacity=".65" d="M25.4 13C25.4 13 23.6 16.6 23.6 18.2a2.1 2.1 0 0 0 4.2 0C27.8 16.6 25.4 13 25.4 13z"/></svg></span></div>
+    <div>
+      <h1>SaHayak</h1>
+      <p class="tagline">blood help nearby</p>
+    </div>
+  </div>
+  <section class="glass">
+    <p class="kicker">Bags only · no phone</p>
+    <p id="place" style="font-family:Syne,sans-serif;font-size:22px;margin:8px 0 0"></p>
+    <div class="bags story" id="bags"></div>
+    <p class="tiny" id="bagHint">Empty outline. Gold = promised.</p>
+    <p class="hint" id="mates"></p>
+    <p class="legal"><a href="/app/">Open the full app</a></p>
+  </section>
+</div>
+<script src="/app/sahayak-block.js?v=pause"></script>
+<script>
+const token = location.pathname.split('/').pop();
+fetch('/v1/guest/'+token).then(r=>r.json()).then(j=>{
+  if(j.error){ place.textContent = j.human || 'This link has ended.'; return; }
+  place.textContent = (j.recipient_group||'') + ' · ' + (j.hospital_name||'') + (j.ward ? (' · ward '+j.ward) : '');
+  const parts = String(j.units_progress||'0/0').split('/');
+  const got = parseInt(parts[0],10)||0;
+  const need = parseInt(parts[1],10)||0;
+  bags.innerHTML = '';
+  for(let i=0;i<Math.max(need,1);i++){
+    const d=document.createElement('span');
+    d.className = 'bag'+(i<got?' on':'');
+    bags.appendChild(d);
+  }
+  bagHint.textContent = got+' of '+need+' bags promised. No phone on this page.';
+  mates.textContent = j.wait_mates_hint || '';
+}).catch(()=>{
+  if(window.SahayakPause) SahayakPause.show("server_quiet");
+  place.textContent='Could not load. Try again.';
+});
+</script>
+</body>
+</html>

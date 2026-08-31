@@ -1,4 +1,5 @@
-"""Durable in-process store. JSON on disk until Postgres sits behind this same API."""
+"""Durable in-process store. Backed by a real transactional database (see app/db.py);
+SQLite by default, PostgreSQL when DATABASE_URL points at the docker-compose instance."""
 from __future__ import annotations
 
 import json
@@ -9,8 +10,12 @@ from pathlib import Path
 from typing import Any
 
 from app.config_loader import load_config
+from app.db import load_all, save_all
 
-_DATA = Path(__file__).resolve().parent.parent / "data" / "store.json"
+# Legacy JSON file from before the database migration. Only read once, to
+# carry forward any existing data the first time this runs against a fresh
+# database. Never written to again after that.
+_LEGACY_DATA = Path(__file__).resolve().parent.parent / "data" / "store.json"
 
 
 class MemoryStore:
@@ -163,18 +168,23 @@ class MemoryStore:
         }
 
     def save(self) -> None:
-        _DATA.parent.mkdir(parents=True, exist_ok=True)
-        tmp = _DATA.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self._dump(), default=str), encoding="utf-8")
-        tmp.replace(_DATA)
+        snapshot = self._dump()
+        save_all({k: json.dumps(v, default=str) for k, v in snapshot.items()})
 
     def _load(self) -> bool:
-        if not _DATA.exists():
+        raw_rows = load_all()
+        if not raw_rows and _LEGACY_DATA.exists():
+            # One-time migration: carry forward the old JSON file into the database.
+            try:
+                legacy = json.loads(_LEGACY_DATA.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                legacy = None
+            if legacy:
+                save_all({k: json.dumps(v, default=str) for k, v in legacy.items()})
+                raw_rows = load_all()
+        if not raw_rows:
             return False
-        try:
-            raw = json.loads(_DATA.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            return False
+        raw = {k: json.loads(v) for k, v in raw_rows.items()}
         self.users = raw.get("users") or {}
         self.tokens = raw.get("tokens") or {}
         self.donors = raw.get("donors") or {}

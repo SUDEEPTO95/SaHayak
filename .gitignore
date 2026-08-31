@@ -30,6 +30,8 @@ android/*.keystore
 
 # Local persisted runtime data
 middleware/data/store.json
+middleware/data/sahayak.db
+middleware/data/sahayak.db-*
 
 # IDE and OS files
 .idea/

@@ -89,7 +89,7 @@ class DonorHoldCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hi = language.toLowerCase().startsWith("hi");
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -124,17 +124,19 @@ class DonorHoldCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          
+
           // Fasting hold toggle
           _HoldToggleRow(
             icon: Icons.restaurant,
             label: hi ? "भूखा हूँ" : "Fasting",
             isActive: fastingActive,
             onToggle: onFastingToggle,
-            sublabel: hi ? "खाना खा लूँ तो फिर हाजिर" : "Will be available after eating",
+            sublabel: hi
+                ? "खाना खा लूँ तो फिर हाजिर"
+                : "Will be available after eating",
           ),
           const SizedBox(height: 12),
-          
+
           // Fever hold toggle
           _HoldToggleRow(
             icon: Icons.local_fire_department,
@@ -143,7 +145,7 @@ class DonorHoldCard extends StatelessWidget {
             onToggle: onFeverToggle,
             sublabel: hi ? "ठीक हो जाऊँ तो बुलाना" : "Call when I'm well",
           ),
-          
+
           if (fastingActive || feverActive) ...[
             const SizedBox(height: 14),
             Container(
@@ -276,7 +278,7 @@ class GraceDateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hi = language.toLowerCase().startsWith("hi");
-    
+
     if (lastDonationDaysAgo == null || lastDonationDaysAgo! < 0) {
       return const SizedBox.shrink();
     }
@@ -286,7 +288,8 @@ class GraceDateCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: (isEligible ? const Color(0xFF1AA58A) : kSos).withValues(alpha: 0.1),
+        color: (isEligible ? const Color(0xFF1AA58A) : kSos)
+            .withValues(alpha: 0.1),
         border: Border.all(
           color: isEligible ? const Color(0xFF1AA58A) : kSos,
           width: 1,
@@ -309,13 +312,9 @@ class GraceDateCard extends StatelessWidget {
                 Text(
                   isEligible
                       ? (hi ? "आप अब दे सकते हैं" : "You're eligible now")
-                      : (hi
-                          ? "आप अभी नहीं दे सकते"
-                          : "Not eligible yet"),
+                      : (hi ? "आप अभी नहीं दे सकते" : "Not eligible yet"),
                   style: TextStyle(
-                    color: isEligible
-                        ? const Color(0xFF1AA58A)
-                        : kSos,
+                    color: isEligible ? const Color(0xFF1AA58A) : kSos,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),

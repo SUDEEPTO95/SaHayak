@@ -41,8 +41,10 @@ class HeatmapVisualizationLayer extends StatelessWidget {
 
   Color _colorForIntensity(double intensity) {
     // Gradient: low intensity (cool) → high intensity (hot/gold)
-    if (intensity < 25) return const Color(0xFF8B7355).withValues(alpha: 0.3); // Brown
-    if (intensity < 50) return const Color(0xFFCD7F32).withValues(alpha: 0.4); // Bronze
+    if (intensity < 25)
+      return const Color(0xFF8B7355).withValues(alpha: 0.3); // Brown
+    if (intensity < 50)
+      return const Color(0xFFCD7F32).withValues(alpha: 0.4); // Bronze
     if (intensity < 75) return kGold.withValues(alpha: 0.5); // Gold
     return kGold.withValues(alpha: 0.7); // Bright gold
   }
@@ -74,8 +76,7 @@ class HeatmapVisualizationLayer extends StatelessWidget {
           ),
           children: [
             TileLayer(
-              urlTemplate:
-                  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+              urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
               subdomains: const ["a", "b", "c"],
               userAgentPackageName: "com.sahayak.mobile",
             ),
@@ -83,7 +84,7 @@ class HeatmapVisualizationLayer extends StatelessWidget {
               markers: points.map((p) {
                 final color = _colorForIntensity(p.intensity);
                 final size = 15 + (p.intensity / 100 * 20); // 15-35px
-                
+
                 return Marker(
                   point: p.latlng,
                   width: size,
@@ -110,7 +111,7 @@ class HeatmapVisualizationLayer extends StatelessWidget {
             ),
           ],
         ),
-        
+
         // Legend and info
         Positioned(
           bottom: 16,
@@ -150,9 +151,7 @@ class HeatmapVisualizationLayer extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      language.toLowerCase().startsWith("hi")
-                          ? "कम"
-                          : "Low",
+                      language.toLowerCase().startsWith("hi") ? "कम" : "Low",
                       style: const TextStyle(color: Colors.grey, fontSize: 10),
                     ),
                     const SizedBox(width: 16),
@@ -166,9 +165,7 @@ class HeatmapVisualizationLayer extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      language.toLowerCase().startsWith("hi")
-                          ? "अधिक"
-                          : "High",
+                      language.toLowerCase().startsWith("hi") ? "अधिक" : "High",
                       style: const TextStyle(color: Colors.grey, fontSize: 10),
                     ),
                   ],
@@ -242,75 +239,71 @@ class HeatmapGridView extends StatelessWidget {
                 ),
               )
             else
-              ...points
-                  .asMap()
-                  .entries
-                  .map((entry) {
-                    final i = entry.key;
-                    final p = entry.value;
-                    final color = _colorForIntensity(p.intensity);
-                    
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.15),
-                          border: Border.all(color: color, width: 1),
-                          borderRadius: BorderRadius.circular(8),
+              ...points.asMap().entries.map((entry) {
+                final i = entry.key;
+                final p = entry.value;
+                final color = _colorForIntensity(p.intensity);
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      border: Border.all(color: color, width: 1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: color,
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 20,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: color,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                language.toLowerCase().startsWith("hi")
+                                    ? "रिक्वेस्ट ${i + 1}"
+                                    : "Request ${i + 1}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    language.toLowerCase().startsWith("hi")
-                                        ? "रिक्वेस्ट ${i + 1}"
-                                        : "Request ${i + 1}",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Text(
-                                    language.toLowerCase().startsWith("hi")
-                                        ? "${p.unitsNeeded} चाहिए, ${p.unitsAccepted} मिल गए"
-                                        : "${p.unitsNeeded} needed, ${p.unitsAccepted} accepted",
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                language.toLowerCase().startsWith("hi")
+                                    ? "${p.unitsNeeded} चाहिए, ${p.unitsAccepted} मिल गए"
+                                    : "${p.unitsNeeded} needed, ${p.unitsAccepted} accepted",
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                ),
                               ),
-                            ),
-                            Text(
-                              "${p.intensity.toStringAsFixed(0)}%",
-                              style: TextStyle(
-                                color: color,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  })
-                  .toList(),
+                        Text(
+                          "${p.intensity.toStringAsFixed(0)}%",
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
           ],
         ),
       ),

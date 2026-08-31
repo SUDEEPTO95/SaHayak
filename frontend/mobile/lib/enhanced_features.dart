@@ -37,14 +37,14 @@ class BagProgressVisual extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bags = <Widget>[];
-    
+
     // Create bag icons based on progress
     for (int i = 0; i < total; i++) {
       if (i < accepted) {
         // In: filled red bag
         bags.add(
           Tooltip(
-            message: "Unit ${ i + 1} accepted",
+            message: "Unit ${i + 1} accepted",
             child: Icon(Icons.water_drop, color: kSos, size: 28),
           ),
         );
@@ -61,7 +61,8 @@ class BagProgressVisual extends StatelessWidget {
         bags.add(
           Tooltip(
             message: "Unit ${i + 1} needed",
-            child: Icon(Icons.water_drop_outlined, color: Colors.grey, size: 28),
+            child:
+                Icon(Icons.water_drop_outlined, color: Colors.grey, size: 28),
           ),
         );
       }
@@ -78,7 +79,8 @@ class BagProgressVisual extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           "$accepted/$total units",
-          style: const TextStyle(color: kGold, fontSize: 12, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+              color: kGold, fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -195,7 +197,7 @@ class WalkToDoorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hi = language.toLowerCase().startsWith("hi");
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -278,7 +280,9 @@ class WalkToDoorCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  hi ? "फोन स्वीकार के बाद ही" : "Phone only after you accepted",
+                  hi
+                      ? "फोन स्वीकार के बाद ही"
+                      : "Phone only after you accepted",
                   style: const TextStyle(color: kGold, fontSize: 12),
                 ),
               ),
@@ -367,9 +371,7 @@ class StillNeedBadge extends StatelessWidget {
           Icon(Icons.favorite, color: kSos, size: 14),
           const SizedBox(width: 4),
           Text(
-            hi
-                ? "अभी $count चाहिए"
-                : "Still need $count",
+            hi ? "अभी $count चाहिए" : "Still need $count",
             style: const TextStyle(
               color: kSos,
               fontSize: 12,

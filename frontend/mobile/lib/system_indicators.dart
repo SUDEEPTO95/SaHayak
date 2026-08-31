@@ -288,7 +288,7 @@ class NightModeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hi = language.toLowerCase().startsWith("hi");
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -299,7 +299,9 @@ class NightModeToggle extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: isActive ? kGold.withValues(alpha: 0.2) : Colors.transparent,
+                  color: isActive
+                      ? kGold.withValues(alpha: 0.2)
+                      : Colors.transparent,
                   border: Border.all(
                     color: isActive ? kGold : Colors.grey[700]!,
                     width: 2,

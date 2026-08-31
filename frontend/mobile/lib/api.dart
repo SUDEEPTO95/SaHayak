@@ -27,7 +27,10 @@ class Api {
       return _map(res.body, res.statusCode);
     } catch (_) {
       pauseBus.showCode("no_internet");
-      return {"error": "no_internet", "human": "The line is quiet. You stay here."};
+      return {
+        "error": "no_internet",
+        "human": "The line is quiet. You stay here."
+      };
     }
   }
 
@@ -41,7 +44,10 @@ class Api {
       return _map(res.body, res.statusCode);
     } catch (_) {
       pauseBus.showCode("no_internet");
-      return {"error": "no_internet", "human": "The line is quiet. You stay here."};
+      return {
+        "error": "no_internet",
+        "human": "The line is quiet. You stay here."
+      };
     }
   }
 
@@ -51,7 +57,10 @@ class Api {
       return _map(res.body, res.statusCode);
     } catch (_) {
       pauseBus.showCode("no_internet");
-      return {"error": "no_internet", "human": "The line is quiet. You stay here."};
+      return {
+        "error": "no_internet",
+        "human": "The line is quiet. You stay here."
+      };
     }
   }
 

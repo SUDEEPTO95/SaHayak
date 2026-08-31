@@ -404,7 +404,7 @@ class _GateScreenState extends State<GateScreen> {
       if (!mounted) return;
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen(hi: widget.hi, onLang: widget.onLang)));
     } else {
-      setState(() => msg = humanOf(j, "Try the code again."));
+      setState(() => msg = humanOf(j, widget.hi ? "वह कोड सही नहीं था। फिर कोशिश करें।" : "That code didn't match. Please try again."));
     }
   }
 
@@ -638,13 +638,13 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
       lastId = rec["id"] as String? ?? "";
       setState(() => status = "${humanOf(j)}\n$kApiBase$guest");
       if (j["merged"] != true && context.mounted) {
-        pauseBus.show(const PauseNote(code: "breath", title: "Family Ring is hearing first", line: "You stay on this page. Eight quiet seconds. Nothing extra was sent."));
+        pauseBus.show(PauseNote(code: "breath", title: widget.hi ? "आपका भरोसे का परिवार पहले सुन रहा है" : "Your trusted family is hearing first", line: widget.hi ? "यहीं रुकें। आठ सेकंड। कुछ और नहीं भेजा गया।" : "Stay here for a moment. Nothing else was sent yet."));
         Future<void>.delayed(const Duration(seconds: 8), pauseBus.ok);
       }
     } catch (_) {
       final p = await SharedPreferences.getInstance();
       await p.setString("offline_sos", jsonEncode(body));
-      setState(() => status = "No network. Saved on this phone. Open SaHayak when data returns.");
+      setState(() => status = widget.hi ? "इंटरनेट नहीं है। यह फोन पर सेव हो गया। इंटरनेट आने पर SaHayak फिर खोलें।" : "No internet right now. Saved on this phone. Open SaHayak again once you have internet.");
     }
   }
 
@@ -743,7 +743,7 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                           final j = await api.post("/v1/blood-requests/$lastId/undo", {});
                           if (mounted) setState(() => status = humanOf(j));
                         },
-                        child: const Text("Wrong group? Undo (2 minutes)", style: TextStyle(color: kGold)),
+                        child: Text(widget.hi ? "गलत ग्रुप? वापस लें (2 मिनट)" : "Picked the wrong blood group? Undo it (2 minutes)", style: const TextStyle(color: kGold)),
                       ),
                     if (lastId.isNotEmpty)
                       TextButton(
@@ -751,7 +751,7 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                           final j = await api.post("/v1/blood-requests/$lastId/still-need", {});
                           if (mounted) setState(() => status = humanOf(j));
                         },
-                        child: const Text("Surgeon still waiting", style: TextStyle(color: kGold)),
+                        child: Text(widget.hi ? "अभी भी रक्त चाहिए" : "Still waiting for blood", style: const TextStyle(color: kGold)),
                       ),
                     const SizedBox(height: 12),
                     Text(status, style: const TextStyle(height: 1.45, fontSize: 16)),
@@ -970,24 +970,24 @@ class MoreScreen extends StatelessWidget {
               Glass(
                 child: Column(
                   children: [
-                    ListTile(leading: const Icon(Icons.inbox_outlined, color: kGold), title: const Text("Inbox"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HumanScreen("Inbox", "/v1/inbox")))),
-                    ListTile(leading: const Icon(Icons.chat_bubble_outline, color: kGold), title: const Text("Ask SaHayak"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AssistantScreen()))),
-                    ListTile(leading: const Icon(Icons.place_outlined, color: kGold), title: const Text("Help around me"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HumanScreen("Directory", "/v1/directory")))),
-                    ListTile(leading: const Icon(Icons.menu_book_outlined, color: kGold), title: const Text("Family groups"), subtitle: const Text("Private names. Never on a map."), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.notebook, hi: hi)))),
-                    ListTile(leading: const Icon(Icons.event_repeat, color: kGold), title: const Text("Monthly bag"), subtitle: const Text("Quiet. No public ping."), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.lane, hi: hi)))),
-                    ListTile(leading: const Icon(Icons.groups_outlined, color: kGold), title: const Text("Same hospital tonight"), subtitle: const Text("Share a wait. No phones."), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.sameNight, hi: hi)))),
-                    ListTile(leading: const Icon(Icons.train_outlined, color: kGold), title: const Text("This train only"), subtitle: const Text("Pin dies when the ride ends."), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.ride, hi: hi)))),
-                    ListTile(leading: const Icon(Icons.nights_stay_outlined, color: kGold), title: const Text("Open after 10pm"), subtitle: const Text("Night desks. Official hours."), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.night, hi: hi)))),
-                    ListTile(leading: const Icon(Icons.favorite_border, color: kGold), title: const Text("Family Ring"), onTap: () => _snack(context, "/v1/family-ring", ["trusted-1", "trusted-2"])),
-                    ListTile(leading: const Icon(Icons.groups_outlined, color: kGold), title: const Text("Society Ring"), onTap: () => _snack(context, "/v1/society-ring", {"society_id": "demo-society"})),
-                    ListTile(leading: const Icon(Icons.schedule, color: kGold), title: const Text("Give-window"), onTap: () => _snack(context, "/v1/give-windows", {"place": "Howrah", "until": "19:00"})),
-                    ListTile(leading: const Icon(Icons.directions_car_outlined, color: kGold), title: const Text("Help without blood"), onTap: () => _snack(context, "/v1/help-without-blood", {"kind": "ride"})),
-                    ListTile(leading: const Icon(Icons.visibility_outlined, color: kGold), title: const Text("Rare Watch"), onTap: () => _snack(context, "/v1/rare-watch", ["Bombay"])),
-                    ListTile(leading: const Icon(Icons.shield_outlined, color: kGold), title: const Text("Safety check-in"), onTap: () => _snack(context, "/v1/checkin", {"eta_minutes": 20})),
-                    ListTile(leading: const Icon(Icons.campaign_outlined, color: kGold), title: const Text("Camps"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HumanScreen("Camps", "/v1/camps")))),
+                    ListTile(leading: const Icon(Icons.inbox_outlined, color: kGold), title: Text(hi ? "मेरे संदेश" : "My messages"), subtitle: Text(hi ? "जो लोगों ने आपको भेजा" : "What people sent you"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HumanScreen("Inbox", "/v1/inbox")))),
+                    ListTile(leading: const Icon(Icons.chat_bubble_outline, color: kGold), title: Text(hi ? "सवाल पूछें" : "Ask a question"), subtitle: Text(hi ? "आसान भाषा में जवाब मिलेगा" : "Get a simple answer, in plain words"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AssistantScreen()))),
+                    ListTile(leading: const Icon(Icons.place_outlined, color: kGold), title: Text(hi ? "पास की मदद" : "Help near me"), subtitle: Text(hi ? "पास के ब्लड बैंक और मदद" : "Blood banks and helpers close to you"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HumanScreen("Directory", "/v1/directory")))),
+                    ListTile(leading: const Icon(Icons.menu_book_outlined, color: kGold), title: Text(hi ? "परिवार के नाम" : "Family names"), subtitle: Text(hi ? "सिर्फ़ आपके लिए। किसी को नहीं दिखेगा।" : "Just for you. No one else can see this."), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.notebook, hi: hi)))),
+                    ListTile(leading: const Icon(Icons.event_repeat, color: kGold), title: Text(hi ? "हर महीने की ज़रूरत" : "Blood needed every month"), subtitle: Text(hi ? "जैसे थैलेसीमिया या डायलिसिस" : "For ongoing needs like thalassemia or dialysis"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.lane, hi: hi)))),
+                    ListTile(leading: const Icon(Icons.groups_outlined, color: kGold), title: Text(hi ? "आज इसी अस्पताल में" : "Same hospital tonight"), subtitle: Text(hi ? "इंतज़ार या गाड़ी साथ में बाँटें" : "Share a wait or a ride with others here"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.sameNight, hi: hi)))),
+                    ListTile(leading: const Icon(Icons.train_outlined, color: kGold), title: Text(hi ? "इस ट्रेन में मदद" : "Help on this train ride"), subtitle: Text(hi ? "उतरने के बाद यह अपने आप बंद हो जाता है" : "Turns off by itself when your ride ends"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.ride, hi: hi)))),
+                    ListTile(leading: const Icon(Icons.nights_stay_outlined, color: kGold), title: Text(hi ? "रात में खुला" : "Open at night"), subtitle: Text(hi ? "रात 10 बजे के बाद खुले ब्लड बैंक" : "Blood banks open after 10pm"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EasyExtraScreen(kind: EasyKind.night, hi: hi)))),
+                    ListTile(leading: const Icon(Icons.favorite_border, color: kGold), title: Text(hi ? "मेरा भरोसे का परिवार" : "My trusted family"), subtitle: Text(hi ? "यही लोग सबसे पहले सुनेंगे" : "These are the people who hear from you first"), onTap: () => _snack(context, "/v1/family-ring", ["trusted-1", "trusted-2"])),
+                    ListTile(leading: const Icon(Icons.groups_outlined, color: kGold), title: Text(hi ? "मेरे पड़ोसी" : "My neighbours"), subtitle: Text(hi ? "आपकी सोसाइटी या इलाके के लोग" : "People in your building or local area"), onTap: () => _snack(context, "/v1/society-ring", {"society_id": "demo-society"})),
+                    ListTile(leading: const Icon(Icons.schedule, color: kGold), title: Text(hi ? "मैं कब दे सकता हूँ" : "When I can give blood"), subtitle: Text(hi ? "जगह और समय बताएँ" : "Tell others the place and time you're free"), onTap: () => _snack(context, "/v1/give-windows", {"place": "Howrah", "until": "19:00"})),
+                    ListTile(leading: const Icon(Icons.directions_car_outlined, color: kGold), title: Text(hi ? "बिना रक्त दिए मदद" : "Help without giving blood"), subtitle: Text(hi ? "गाड़ी या साथ देकर मदद करें" : "Offer a ride or keep someone company"), onTap: () => _snack(context, "/v1/help-without-blood", {"kind": "ride"})),
+                    ListTile(leading: const Icon(Icons.visibility_outlined, color: kGold), title: Text(hi ? "दुर्लभ ग्रुप की सूचना" : "Alert for rare blood types"), subtitle: Text(hi ? "सिर्फ़ दुर्लभ ग्रुप चाहिए हो तभी बताएँ" : "Only tell me when a rare blood type is needed"), onTap: () => _snack(context, "/v1/rare-watch", ["Bombay"])),
+                    ListTile(leading: const Icon(Icons.shield_outlined, color: kGold), title: Text(hi ? "मैं सुरक्षित हूँ - बताएँ" : "Tell family I'm safe"), subtitle: Text(hi ? "पहुँचने का समय बताएँ" : "Share when you expect to arrive"), onTap: () => _snack(context, "/v1/checkin", {"eta_minutes": 20})),
+                    ListTile(leading: const Icon(Icons.campaign_outlined, color: kGold), title: Text(hi ? "रक्तदान शिविर" : "Blood donation camps"), subtitle: Text(hi ? "पास का शिविर खोजें और सीट बुक करें" : "Find one near you and book your seat"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HumanScreen("Camps", "/v1/camps")))),
                     ListTile(
                       leading: const Icon(Icons.content_copy, color: kGold),
-                      title: const Text("Copy status for WhatsApp"),
+                      title: Text(hi ? "व्हाट्सऐप के लिए स्थिति कॉपी करें" : "Copy update for WhatsApp"),
                       onTap: () async {
                         final mine = await api.get("/v1/blood-requests/mine");
                         final rows = mine["requests"] as List<dynamic>? ?? [];
@@ -1065,7 +1065,7 @@ class AssistantScreen extends StatefulWidget {
 
 class _AssistantScreenState extends State<AssistantScreen> {
   final text = TextEditingController(text: "need B+ at SSKM");
-  String out = "Plain words. Same matching. Family Ring still on a real request.";
+  String out = "Ask me anything about getting or giving blood. I answer in simple words.";
 
   @override
   Widget build(BuildContext context) {
@@ -1122,15 +1122,15 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
   String get title {
     switch (widget.kind) {
       case EasyKind.notebook:
-        return "Family groups";
+        return widget.hi ? "परिवार के नाम" : "Family names";
       case EasyKind.lane:
-        return "Monthly bag";
+        return widget.hi ? "हर महीने की ज़रूरत" : "Blood needed every month";
       case EasyKind.sameNight:
-        return "Same hospital tonight";
+        return widget.hi ? "आज इसी अस्पताल में" : "Same hospital tonight";
       case EasyKind.ride:
-        return "This train only";
+        return widget.hi ? "इस ट्रेन में मदद" : "Help on this train ride";
       case EasyKind.night:
-        return "Open after 10pm";
+        return widget.hi ? "रात में खुला" : "Open at night";
     }
   }
 
@@ -1207,7 +1207,7 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
       case EasyKind.lane:
         return Column(
           children: [
-            const Text("Quiet monthly need. Family Ring first. No city ping."),
+            Text(widget.hi ? "हर महीने की ज़रूरत। शांत तरीके से। सिर्फ़ भरोसे के परिवार को बताया जाता है।" : "For a need that repeats every month. Sent quietly, only to your trusted family."),
             Wrap(
               spacing: 8,
               children: groups.map((g) => ChoiceChip(label: Text(g), selected: group == g, selectedColor: kGold, onSelected: (_) => setState(() => group = g))).toList(),

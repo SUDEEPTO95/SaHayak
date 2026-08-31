@@ -1,70 +1,70 @@
 const GROUPS=["O-","O+","A-","A+","B-","B+","AB-","AB+"];
 const I = {
   en: {
-    s1h:"Email or mobile. We never read SMS on your phone.",
-    viaEmail:"Email", viaMobile:"Mobile",
-    getCode:"Get a code", enterCode:"Enter the code",
-    email:"Your email", mobile:"Your mobile", send:"Send my code",
-    code:"The six numbers", enter:"Enter",
-    homeh:"Who are you right now?",
-    needsub:"Hospital asked for blood. We start with people you trust.",
-    donsub:"I can give. My phone stays hidden until I say I can go.",
-    more:"More — extra help, not the emergency",
-    three:"A few taps", locdisc:"Nearby matching people — only after you tap. Or pick a city. We never follow you.",
-    locdisc2:"We only show who needs you nearby. Pins stay fuzzy until you tap I can go.",
-    city:"City if you skip GPS", gps:"Use my location (ask first)",
-    grp:"Blood group the hospital asked for", comp:"Kind of bag", urg:"When", hosp:"Hospital name",
-    homeb:"Home", control:"You stay in control", myg:"My blood group", save:"Save me, then show who needs help",
-    paste:"Paste a WhatsApp message (optional)",
-    fillForm:"Fill the form — we have not sent anyone yet",
-    opt:"Optional extras", opth:"These are not for the first minute of an emergency. Use Home if someone needs blood now.",
-    slipk:"Hospital paper", sliph:"Photo stays on this phone. Type the three words on the slip. We never send from here.",
-    slipp:"Photo of the slip", slipl:"What the paper says", slipf:"Fill from the paper — not sent",
-    nbneed:"Your family groups (private)",
-    calmk:"Calm extras",
-    nbk:"Family groups", nbs:"Dadi’s group, private. Tap a name when you need blood.",
-    nbh:"Short name + group. Only you see this. Never on a map.", nbwho:"Who", nbgrp:"Their group", nbsave:"Save this name",
-    lanek:"Monthly bag", lanes:"Thalassemia or dialysis. Quiet. Never a public ping.",
-    laneh:"One tap for a regular need. Family Ring first. No city-wide ping.", lanedue:"Day this month", lanesend:"Ask quietly for this bag",
-    snk:"Same hospital tonight", sns:"Share a wait or a cab. No phone numbers.",
-    snh:"We only show that another family is here. Never a phone.", snlook:"Who else is here?", snwait:"Offer a shared wait", sncab:"Offer a shared cab",
-    ridek:"This train only", rides:"I am on this local. When the ride ends, the pin dies.",
-    rideh:"Pick the corridor. We hide your phone. When the minutes end, you vanish.", ridemin:"Minutes on this ride", ridesend:"I am on this local",
-    nightk:"Open after 10pm", nights:"Blood desks listed for late night. Official hours only.",
-    nighth:"Listed night desks. Not a live camera on the door.", nightgo:"Show night desks"
+    s1h:"Use email or your phone number. We never read your text messages.",
+    viaEmail:"Email", viaMobile:"Phone",
+    getCode:"Get a code", enterCode:"Type the code",
+    email:"Your email", mobile:"Your phone number", send:"Send me a code",
+    code:"The 6 numbers", enter:"Go in",
+    homeh:"What do you need right now?",
+    needsub:"The hospital asked for blood. We tell your trusted family first.",
+    donsub:"I want to give blood. No one sees my phone number until I say yes.",
+    more:"More ways to help (not for right-now emergencies)",
+    three:"Just a few taps", locdisc:"See people near you who match — only after you tap. Or just pick your city. We never track you.",
+    locdisc2:"We only show who needs help near you. Your exact spot stays hidden until you tap I can go.",
+    city:"Pick your city (if not using GPS)", gps:"Use my exact location (we ask first)",
+    grp:"Blood group the hospital needs", comp:"Type of blood needed", urg:"How soon", hosp:"Hospital name",
+    homeb:"Home", control:"You decide everything here", myg:"My blood group", save:"Save my details, then see who needs help",
+    paste:"Paste a WhatsApp message here (optional)",
+    fillForm:"Fill in the form — nothing is sent yet",
+    opt:"More ways to help", opth:"These are not for a right-now emergency. If someone needs blood now, go back to Home.",
+    slipk:"Hospital paper slip", sliph:"The photo stays on your phone only. Just type the few words from the slip. We never send the photo.",
+    slipp:"Take a photo of the slip", slipl:"What the slip says", slipf:"Fill in from the slip — nothing sent yet",
+    nbneed:"Your family's blood groups (only you can see this)",
+    calmk:"Other ways to help",
+    nbk:"Family blood groups", nbs:"Save your family's blood groups here, just for you. Tap a name fast when you need blood.",
+    nbh:"Add a short name and blood group. Only you can see this. It is never shown on any map.", nbwho:"Name", nbgrp:"Their blood group", nbsave:"Save this name",
+    lanek:"Blood needed every month", lanes:"For an ongoing need, like thalassemia or dialysis. Sent quietly, only to your family.",
+    laneh:"One tap for a need that happens every month. Your trusted family sees it first.", lanedue:"Which day of the month", lanesend:"Ask my family quietly",
+    snk:"Same hospital, tonight", sns:"Share a wait or share a cab. Phone numbers are never shown.",
+    snh:"We only show that another family is here too. Phone numbers are never shown.", snlook:"Who else is here?", snwait:"Offer to wait together", sncab:"Offer to share a cab",
+    ridek:"Help while I'm on this train", rides:"I can help while I'm riding. When I get off, this turns off by itself.",
+    rideh:"Pick your train line. Your phone number stays hidden. This turns off by itself when your ride ends.", ridemin:"How many minutes you'll be riding", ridesend:"I'm on this train now",
+    nightk:"Open at night", nights:"Blood banks open late at night. Only official opening hours are shown.",
+    nighth:"A list of blood banks open at night. Not a live camera.", nightgo:"Show blood banks open at night"
   },
   hi: {
-    s1h:"ईमेल या मोबाइल। हम आपके फोन पर SMS नहीं पढ़ते।",
-    viaEmail:"ईमेल", viaMobile:"मोबाइल",
+    s1h:"ईमेल या फ़ोन नंबर इस्तेमाल करें। हम कभी आपके संदेश नहीं पढ़ते।",
+    viaEmail:"ईमेल", viaMobile:"फ़ोन नंबर",
     getCode:"कोड लें", enterCode:"कोड लिखें",
-    email:"ईमेल", mobile:"मोबाइल", send:"कोड भेजें",
-    code:"छह अंक", enter:"दाखिल हों",
-    homeh:"अभी आप कौन हैं?",
-    needsub:"अस्पताल ने रक्त माँगा। पहले आपके भरोसे के लोग।",
-    donsub:"मैं दे सकता/सकती हूँ। फोन तब तक छिपा जब तक मैं कहूँ कि मैं जाऊँगा/जाऊँगी।",
-    more:"और — आपात नहीं, अतिरिक्त मदद",
-    three:"कुछ टैप", locdisc:"पास के मैचिंग लोग — तभी जब आप टैप करें। या शहर चुनें। पीछे से नहीं।",
-    locdisc2:"सिर्फ़ यह कि पास किसे ज़रूरत है। पिन धुंधले जब तक आप ‘मैं जा सकता हूँ’ न दबाएँ।",
-    city:"शहर (GPS न दें तो)", gps:"मेरी लोकेशन (पहले पूछें)",
-    grp:"अस्पताल ने जो ग्रुप लिखा", comp:"किस तरह की थैली", urg:"कब", hosp:"अस्पताल का नाम",
-    homeb:"होम", control:"आपका नियंत्रण", myg:"मेरा ब्लड ग्रुप", save:"सेव करें, फिर देखें किसे मदद चाहिए",
-    paste:"व्हाट्सऐप संदेश चिपकाएँ (वैकल्पिक)",
-    fillForm:"फॉर्म भरें — अभी किसी को नहीं भेजा",
-    opt:"वैकल्पिक", opth:"आपात के पहले मिनट के लिए नहीं। रक्त चाहिए तो होम पर जाएँ।",
-    slipk:"अस्पताल की पर्ची", sliph:"फोटो इस फोन पर रहती है। पर्ची की तीन बातें लिखें। यहाँ से नहीं भेजा जाता।",
-    slipp:"पर्ची की फोटो", slipl:"कागज़ पर क्या लिखा है", slipf:"पर्ची से भरें — अभी नहीं भेजा",
-    nbneed:"परिवार के ग्रुप (निजी)",
-    calmk:"शांत मदद",
-    nbk:"परिवार के ग्रुप", nbs:"दादी का ग्रुप, निजी। रक्त चाहिए तो नाम दबाएँ।",
-    nbh:"छोटा नाम + ग्रुप। सिर्फ़ आप देखें। मैप पर नहीं।", nbwho:"कौन", nbgrp:"उनका ग्रुप", nbsave:"यह नाम सेव करें",
-    lanek:"मासिक थैली", lanes:"थैलेसीमिया या डायलिसिस। शांत। सार्वजनिक पिंग नहीं।",
-    laneh:"नियमित ज़रूरत। पहले Family Ring। शहर-भर पिंग नहीं।", lanedue:"इस महीने का दिन", lanesend:"शांत तरीके से पूछें",
-    snk:"आज यही अस्पताल", sns:"इंतज़ार या कैब बाँटें। फोन नहीं।",
-    snh:"सिर्फ़ यह कि और परिवार यहाँ है। फोन कभी नहीं।", snlook:"और कौन है?", snwait:"इंतज़ार बाँटें", sncab:"कैब बाँटें",
-    ridek:"सिर्फ़ यह ट्रेन", rides:"मैं इस लोकल पर हूँ। सफर खत्म तो पिन खत्म।",
-    rideh:"कॉरिडोर चुनें। फोन छिपा। मिनट खत्म तो आप गायब।", ridemin:"इस सफर के मिनट", ridesend:"मैं इस लोकल पर हूँ",
-    nightk:"रात 10 बजे के बाद", nights:"रात की खिड़की वाले डेस्क। सिर्फ़ लिखे घंटे।",
-    nighth:"सूचीबद्ध रात डेस्क। दरवाज़े का कैमरा नहीं।", nightgo:"रात के डेस्क दिखाएँ"
+    email:"आपका ईमेल", mobile:"आपका फ़ोन नंबर", send:"मुझे कोड भेजें",
+    code:"वो 6 अंक", enter:"अंदर जाएँ",
+    homeh:"अभी आपको क्या चाहिए?",
+    needsub:"अस्पताल ने रक्त माँगा है। हम पहले आपके भरोसे के परिवार को बताते हैं।",
+    donsub:"मैं रक्त देना चाहता/चाहती हूँ। जब तक मैं \"हाँ\" न कहूँ, कोई मेरा फ़ोन नंबर नहीं देखेगा।",
+    more:"मदद के और तरीके (अभी की इमरजेंसी के लिए नहीं)",
+    three:"बस कुछ टैप", locdisc:"पास में जिसे ज़रूरत है वो दिखेगा — सिर्फ़ आपके टैप करने पर। या अपना शहर चुनें। हम आपको ट्रैक नहीं करते।",
+    locdisc2:"पास में किसे मदद चाहिए, बस यही दिखेगा। जब तक आप \"मैं जा सकता हूँ\" न दबाएँ, आपकी सही जगह छिपी रहेगी।",
+    city:"अपना शहर चुनें (GPS न दें तो)", gps:"मेरी सही जगह बताएँ (हम पहले पूछेंगे)",
+    grp:"अस्पताल को जो ब्लड ग्रुप चाहिए", comp:"किस तरह का रक्त चाहिए", urg:"कितनी जल्दी", hosp:"अस्पताल का नाम",
+    homeb:"होम", control:"हर फ़ैसला आपका है", myg:"मेरा ब्लड ग्रुप", save:"मेरी जानकारी सेव करें, फिर देखें किसे मदद चाहिए",
+    paste:"यहाँ व्हाट्सऐप संदेश चिपकाएँ (वैकल्पिक)",
+    fillForm:"फॉर्म भरें — अभी कुछ नहीं भेजा गया",
+    opt:"मदद के और तरीके", opth:"यह अभी की इमरजेंसी के लिए नहीं है। किसी को अभी रक्त चाहिए तो होम पर जाएँ।",
+    slipk:"अस्पताल की पर्ची", sliph:"फोटो सिर्फ़ आपके फोन पर रहती है। बस पर्ची के कुछ शब्द लिखें। हम फोटो कभी नहीं भेजते।",
+    slipp:"पर्ची की फोटो लें", slipl:"पर्ची पर क्या लिखा है", slipf:"पर्ची से भरें — अभी कुछ नहीं भेजा गया",
+    nbneed:"आपके परिवार के ब्लड ग्रुप (सिर्फ़ आप देख सकते हैं)",
+    calmk:"मदद के और तरीके",
+    nbk:"परिवार के ब्लड ग्रुप", nbs:"अपने परिवार के ब्लड ग्रुप यहाँ सेव करें, सिर्फ़ आपके लिए। रक्त चाहिए तो झट से नाम दबाएँ।",
+    nbh:"एक छोटा नाम और ब्लड ग्रुप डालें। सिर्फ़ आप इसे देख सकते हैं। यह कभी किसी मैप पर नहीं दिखता।", nbwho:"नाम", nbgrp:"उनका ब्लड ग्रुप", nbsave:"यह नाम सेव करें",
+    lanek:"हर महीने रक्त चाहिए", lanes:"थैलेसीमिया या डायलिसिस जैसी लगातार ज़रूरत के लिए। शांति से, सिर्फ़ परिवार को भेजा जाता है।",
+    laneh:"हर महीने होने वाली ज़रूरत के लिए एक टैप। आपका भरोसे का परिवार सबसे पहले देखता है।", lanedue:"महीने का कौन सा दिन", lanesend:"अपने परिवार से शांति से पूछें",
+    snk:"आज रात इसी अस्पताल में", sns:"इंतज़ार या कैब साथ में बाँटें। फ़ोन नंबर कभी नहीं दिखाए जाते।",
+    snh:"बस यही दिखेगा कि यहाँ और परिवार भी है। फ़ोन नंबर कभी नहीं दिखाए जाते।", snlook:"और कौन यहाँ है?", snwait:"साथ इंतज़ार करने का प्रस्ताव दें", sncab:"कैब साथ में बाँटने का प्रस्ताव दें",
+    ridek:"जब तक मैं इस ट्रेन में हूँ, मदद करूँगा", rides:"जब तक मैं इस सफ़र में हूँ, मदद कर सकता/सकती हूँ। उतरते ही यह अपने आप बंद हो जाता है।",
+    rideh:"अपनी ट्रेन लाइन चुनें। आपका फ़ोन नंबर छिपा रहता है। सफ़र खत्म होते ही यह अपने आप बंद हो जाता है।", ridemin:"आप कितने मिनट सफ़र में रहेंगे", ridesend:"मैं अभी इस ट्रेन में हूँ",
+    nightk:"रात में खुला", nights:"रात को देर तक खुले ब्लड बैंक। सिर्फ़ आधिकारिक समय दिखाया गया है।",
+    nighth:"रात में खुले ब्लड बैंकों की सूची। यह कोई लाइव कैमरा नहीं है।", nightgo:"रात में खुले ब्लड बैंक दिखाएँ"
   }
 };
 let lang="en", token="", needG="B+", donG="O+", nbG="O-", laneG="B+", rideC="Sealdah";
@@ -154,8 +154,8 @@ async function boot(){
   const flags=m.flags||{};
   if(otpHonest){
     otpHonest.textContent = flags.whatsapp_enabled
-      ? "WhatsApp can carry a code when the operator turns it on."
-      : "Live SMS is off. The code stays on this computer until a gateway is paid. We never read SMS on your phone.";
+      ? "WhatsApp messages will carry the code once that is turned on."
+      : "Text messages are off right now. The code shows here on this screen. We never read your phone's text messages.";
   }
   if(localStorage.getItem("sahayak_night")==="1" || (new Date().getHours()>=22 || new Date().getHours()<6)){
     if(nightMode) nightMode.checked=true;
@@ -228,7 +228,7 @@ async function createReq(){
     j=await r.json();
   } catch(e) {
     localStorage.setItem("sahayak_offline", JSON.stringify(body));
-    say("needStrip","No network. Saved on this computer. Open SaHayak again when data returns.");
+    say("needStrip","No internet right now. Saved on this computer. Open SaHayak again once you have internet.");
     return;
   }
   const rec=j.request||{};
@@ -236,7 +236,7 @@ async function createReq(){
   const guest=location.origin+(rec.guest_url||"");
   if(j.twin || j.merged){
     twinBox.classList.remove("hidden");
-    twinBox.textContent = j.human || "Same emergency — we did not double-ping.";
+    twinBox.textContent = j.human || "Someone already asked for this. We did not send it twice.";
   } else {
     twinBox.classList.add("hidden");
     showBreath();

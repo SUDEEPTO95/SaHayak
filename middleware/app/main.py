@@ -165,6 +165,17 @@ class MatchQuery(BaseModel):
     urgency: str = "critical"
 
 
+class InventoryEntry(BaseModel):
+    id: str = ""
+    blood_group: str
+    component: str = "whole"
+    units: int = Field(default=0, ge=0, le=100000)
+    location_name: str = ""
+    state: str = ""
+    district: str = ""
+    verified_at: str = ""
+
+
 class BloodRequestIn(BaseModel):
     recipient_group: str
     component: str = "whole"
@@ -352,12 +363,18 @@ def upsert_donor(body: DonorProfile, user: dict = Depends(current_user)) -> dict
 def match_nearby(body: MatchQuery, user: dict = Depends(current_user)) -> dict[str, Any]:
     steps = cfg["matching"]["radius_km_steps"]
     radius = body.radius_km if body.radius_km is not None else float(steps[0])
+    donation_age_days = {
+        donor["id"]: max(0.0, (time.time() - float(donor["last_donation_at"])) / 86400)
+        for donor in STORE.donors.values()
+        if donor.get("last_donation_at")
+    }
     ranked = rank_donors(
         recipient_group=body.recipient_group,
         origin_lat=body.lat,
         origin_lng=body.lng,
         donors=list(STORE.donors.values()),
         radius_km=radius,
+        now_iso_days_since_donation=donation_age_days,
     )
     return {"donors": ranked, "radius_km": radius, "component": body.component, "human": "Nearest compatible first. Phones are not in this list."}
 
@@ -415,6 +432,21 @@ def create_request(body: BloodRequestIn, user: dict = Depends(current_user)) -> 
     if not is_valid:
         http_status = get_error_http_status(error_code or "")
         raise HTTPException(http_status, error_code or "invalid_request")
+
+    if body.idempotency_key:
+        existing = STORE.requests.get(body.idempotency_key)
+        if existing and existing.get("seeker_id") == user["id"]:
+            return {
+                "idempotent": True,
+                "merged": False,
+                "twin": False,
+                "same_emergency": False,
+                "request": existing,
+                "human": "This request was already saved. Nobody was notified twice.",
+                "guest_url": existing.get("guest_url"),
+                "status_strip": after_send(existing, merged=False, language=body.language),
+                "undo_seconds": 120,
+            }
     
     lane = (body.lane or "sos").lower()
     if lane not in ("sos", "regular"):
@@ -641,6 +673,49 @@ def add_directory(entry: dict[str, Any], user: dict = Depends(current_user)) -> 
     STORE.directory.append(entry)
     STORE.save()
     return {"ok": True}
+
+
+@app.get("/v1/inventory")
+def list_inventory(
+    blood_group: str | None = None,
+    component: str | None = None,
+    user: dict = Depends(current_user),
+) -> dict[str, Any]:
+    tenant_id = user.get("tenant_id", "public")
+    rows = [row for row in STORE.inventory.values() if row.get("tenant_id") == tenant_id]
+    if blood_group:
+        rows = [row for row in rows if row.get("blood_group") == blood_group]
+    if component:
+        rows = [row for row in rows if row.get("component") == component]
+    return {
+        "entries": rows,
+        "tenant_id": tenant_id,
+        "human": "Verified stock records for this tenant. Confirm availability with the blood bank before promising a unit.",
+    }
+
+
+@app.post("/v1/inventory")
+def upsert_inventory(entry: InventoryEntry, user: dict = Depends(current_user)) -> dict[str, Any]:
+    if user["role"] not in ("owner", "tenant_admin"):
+        raise HTTPException(403, "forbidden")
+    if entry.blood_group not in cfg["blood_groups"]:
+        raise HTTPException(400, "invalid_blood_group")
+    if entry.component not in cfg["components"]:
+        raise HTTPException(400, "invalid_component")
+    inventory_id = entry.id or f"inventory-{len(STORE.inventory) + 1}"
+    tenant_id = user.get("tenant_id", "public")
+    existing = STORE.inventory.get(inventory_id)
+    if existing and existing.get("tenant_id") != tenant_id:
+        raise HTTPException(403, "forbidden")
+    row = {
+        **entry.model_dump(),
+        "id": inventory_id,
+        "tenant_id": tenant_id,
+        "updated_at": time.time(),
+    }
+    STORE.inventory[inventory_id] = row
+    STORE.save()
+    return {"ok": True, "entry": row, "human": "Stock saved for this tenant. Confirm with the bank before promising units."}
 
 
 @app.post("/v1/owner/freeze/{user_id}")
@@ -1019,6 +1094,11 @@ def create_camp(body: dict[str, Any], user: dict = Depends(current_user)) -> dic
 def camp_rsvp(camp_id: str, user: dict = Depends(current_user)) -> dict[str, Any]:
     if camp_id not in STORE.camps or STORE.camps[camp_id].get("status") == "cancelled":
         raise HTTPException(404, "camp_unavailable")
+    if any(
+        row.get("camp_id") == camp_id and row.get("user_id") == user["id"]
+        for row in STORE.camp_rsvps
+    ):
+        return {"ok": True, "already_registered": True, "human": "Your camp seat is already booked."}
     STORE.camp_rsvps.append({"camp_id": camp_id, "user_id": user["id"]})
     STORE.save()
     return {"ok": True, "human": "Camp seat booked. If rain cancels it, you will see it in Inbox."}
@@ -1040,6 +1120,8 @@ def camp_cancel(camp_id: str, user: dict = Depends(current_user)) -> dict[str, A
 
 @app.post("/v1/camps/{camp_id}/passport")
 def camp_passport(camp_id: str, user: dict = Depends(current_user)) -> dict[str, Any]:
+    if camp_id not in STORE.camps or STORE.camps[camp_id].get("status") == "cancelled":
+        raise HTTPException(404, "camp_unavailable")
     token = f"pass-{secrets.token_urlsafe(24)}"
     return {"ok": True, "offline_token": token, "camp_id": camp_id}
 

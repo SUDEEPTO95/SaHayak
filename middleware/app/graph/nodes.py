@@ -1,7 +1,6 @@
 """Specialist nodes. LLM is optional; rules always work so SOS forms stay independent."""
 from __future__ import annotations
 
-import os
 import re
 from typing import Any
 
@@ -14,6 +13,8 @@ from app.graph.tools import (
     who_to_notify,
 )
 from app.store import STORE
+from app.graph.memory import remember
+from app.graph.runtime import classify_intent
 
 HOSPITALS = (
     "SSKM",
@@ -89,38 +90,8 @@ def parse_need_message(text: str) -> dict[str, Any]:
 
 
 def maybe_llm_intent(text: str) -> str | None:
-    """Only if a key is present. Never required. Never talks to SQL."""
-    if not load_config()["flags"].get("ai_enabled"):
-        return None
-    key = os.environ.get("SAHAYAK_GROQ_KEY") or os.environ.get("GROQ_API_KEY")
-    if not key:
-        return None
-    try:
-        import httpx
-
-        r = httpx.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {key}"},
-            json={
-                "model": os.environ.get("SAHAYAK_GROQ_MODEL", "llama-3.1-8b-instant"),
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "Reply with one word only: faq, match, create, refuse, or clarify.",
-                    },
-                    {"role": "user", "content": text[:500]},
-                ],
-                "temperature": 0,
-                "max_tokens": 8,
-            },
-            timeout=8.0,
-        )
-        word = (r.json()["choices"][0]["message"]["content"] or "").strip().lower()
-        if word in {"faq", "match", "create", "refuse", "clarify"}:
-            return word
-    except Exception:
-        return None
-    return None
+    """Use the configured runtime; deterministic intent remains the fallback."""
+    return classify_intent(text)
 
 
 def orchestrator(state: dict[str, Any]) -> dict[str, Any]:
@@ -223,6 +194,16 @@ def reflection(state: dict[str, Any]) -> dict[str, Any]:
         "ok": state.get("intent") != "refuse",
     }
     STORE.reflection_log.append(row)
+    remember(
+        (state.get("user") or {}).get("id", ""),
+        (state.get("user") or {}).get("tenant_id", "public"),
+        {
+            "intent": state.get("intent"),
+            "language": (state.get("user") or {}).get("language", "en"),
+            "parsed": state.get("parsed") or {},
+            "outcome": "refused" if state.get("intent") == "refuse" else "completed",
+        },
+    )
     STORE.save()
     plan = list(state.get("plan") or []) + ["reflection_agent"]
     return {**state, "plan": plan, "reflected": True}

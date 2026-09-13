@@ -47,5 +47,19 @@
     "whatsapp_enabled": false,
     "google_maps_enabled": false,
     "fcm_enabled": false
+  },
+  "ai": {
+    "enabled": false,
+    "provider": "groq-compatible",
+    "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+    "api_key_env": "GROQ_API_KEY",
+    "model": "llama-3.1-8b-instant",
+    "timeout_seconds": 8,
+    "max_retries": 2,
+    "daily_call_budget": 100,
+    "prompt_version": "2026-09-13.v1",
+    "prompts": {
+      "intent": "Reply with one word only: faq, match, create, refuse, or clarify. Never diagnose or prescribe."
+    }
   }
 }

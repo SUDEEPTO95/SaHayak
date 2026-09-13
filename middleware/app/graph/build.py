@@ -13,6 +13,9 @@ from app.graph.nodes import (
     reflection,
     triage,
 )
+from app.graph.context import resolve_context
+from app.graph.harness import validate_output
+from app.graph.memory import read_memory
 
 
 def _route_after_orchestrator(state: dict[str, Any]) -> str:
@@ -100,12 +103,17 @@ def _fallback_invoke(state: dict[str, Any]) -> dict[str, Any]:
 
 def run_crew(*, text: str, user: dict[str, Any], lat: float, lng: float) -> dict[str, Any]:
     global _COMPILED
+    context = resolve_context(
+        text=text,
+        user=user,
+        lat=lat,
+        lng=lng,
+        memory=read_memory(user.get("id", ""), user.get("tenant_id", "public")),
+    )
     start = {
-        "text": text,
-        "user": {k: v for k, v in user.items() if k != "token"},
-        "role": user.get("role"),
-        "lat": lat,
-        "lng": lng,
+        **context,
+        "lat": context["location"]["lat"],
+        "lng": context["location"]["lng"],
         "plan": [],
     }
     engine = "langgraph"
@@ -120,6 +128,7 @@ def run_crew(*, text: str, user: dict[str, Any], lat: float, lng: float) -> dict
     except Exception as exc:
         engine = f"fallback:{type(exc).__name__}"
         out = _fallback_invoke(start)
+    out = validate_output(out)
     return {
         "mode": engine,
         "intent": out.get("intent"),
@@ -129,6 +138,7 @@ def run_crew(*, text: str, user: dict[str, Any], lat: float, lng: float) -> dict
         "knowledge": out.get("knowledge"),
         "ops": out.get("ops"),
         "compliance": out.get("compliance"),
+        "harness": out.get("harness"),
         "question": out.get("question") or "",
         "plan": out.get("plan"),
         "human": out.get("human")

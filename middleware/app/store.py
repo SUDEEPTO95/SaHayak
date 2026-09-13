@@ -27,6 +27,9 @@ class MemoryStore:
         self.donors: dict[str, dict[str, Any]] = {}
         self.requests: dict[str, dict[str, Any]] = {}
         self.directory: list[dict[str, Any]] = []
+        self.inventory: dict[str, dict[str, Any]] = {}
+        self.ai_memory: dict[str, list[dict[str, Any]]] = {}
+        self.ai_traces: list[dict[str, Any]] = []
         self.family_rings: dict[str, list[str]] = {}
         self.society_rings: dict[str, list[str]] = {}
         self.ping_last: dict[str, float] = {}
@@ -142,6 +145,9 @@ class MemoryStore:
             "donors": self.donors,
             "requests": self.requests,
             "directory": self.directory,
+            "inventory": self.inventory,
+            "ai_memory": self.ai_memory,
+            "ai_traces": self.ai_traces[-500:],
             "family_rings": self.family_rings,
             "society_rings": self.society_rings,
             "ping_last": self.ping_last,
@@ -190,6 +196,9 @@ class MemoryStore:
         self.donors = raw.get("donors") or {}
         self.requests = raw.get("requests") or {}
         self.directory = raw.get("directory") or []
+        self.inventory = raw.get("inventory") or {}
+        self.ai_memory = raw.get("ai_memory") or {}
+        self.ai_traces = raw.get("ai_traces") or []
         self.family_rings = raw.get("family_rings") or {}
         self.society_rings = raw.get("society_rings") or {}
         self.ping_last = {k: float(v) for k, v in (raw.get("ping_last") or {}).items()}

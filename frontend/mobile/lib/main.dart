@@ -1971,6 +1971,7 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
   final units = TextEditingController();
   String? whoError;
   String? groupError;
+  String? notebookFormError;
   String? hospitalError;
   String? unitsError;
   String? corridorError;
@@ -2076,6 +2077,9 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
       case EasyKind.notebook:
         return Column(
           children: [
+            if (notebookFormError != null)
+              Text(notebookFormError!,
+                  style: const TextStyle(color: kSos)),
             Text(widget.hi ? "ब्लड ग्रुप *" : "Blood group *"),
             if (groupError != null)
               Text(groupError!, style: const TextStyle(color: kSos)),
@@ -2114,6 +2118,12 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
                   whoError = nameValid
                       ? null
                       : (widget.hi ? "नाम आवश्यक है।" : "Name is required.");
+                  notebookFormError = [
+                    if (!groupValid)
+                      widget.hi ? "ब्लड ग्रुप चुनें।" : "Choose a blood group.",
+                    if (!nameValid)
+                      widget.hi ? "नाम आवश्यक है।" : "Name is required.",
+                  ].join("\n");
                 });
                 if (!groupValid || !nameValid) return;
                 final j = await api.post(

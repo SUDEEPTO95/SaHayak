@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="/app/sahayak.css?v=logo-20260926"/>
+  <link rel="stylesheet" href="/app/sahayak.css?v=required-20260926"/>
 </head>
 <body>
 <div class="orb a"></div><div class="orb b"></div>
@@ -39,15 +39,15 @@
         <button type="button" class="chip on" id="chEmail" onclick="setChannel('email')" data-i="viaEmail">Email</button>
         <button type="button" class="chip" id="chMobile" onclick="setChannel('mobile')" data-i="viaMobile">Mobile</button>
       </div>
-      <label id="idLabel" data-i="email">Your email</label>
-      <input id="email" value="priya@sahayak.local" autocomplete="email"/>
+      <label id="idLabel" class="required-field" data-i="email">Your email</label>
+      <input id="email" autocomplete="email" aria-required="true" required placeholder="Required"/>
       <button class="cta trust" type="button" onclick="otp()" data-i="send">Send my code</button>
       <p class="honest" id="otpHonest">Live SMS is off. The code stays on this computer until a gateway is paid.</p>
     </div>
     <div class="auth-block">
       <p class="kicker" data-i="enterCode">Enter the code</p>
-      <label data-i="code">The six numbers</label>
-      <input id="code" placeholder="like 123456" inputmode="numeric"/>
+      <label class="required-field" data-i="code">The six numbers</label>
+      <input id="code" inputmode="numeric" maxlength="6" aria-required="true" required placeholder="Required"/>
       <button class="cta sos" type="button" onclick="verify()" data-i="enter">Enter</button>
     </div>
     <p class="strip hidden" id="authStrip"></p>
@@ -98,26 +98,27 @@
     <select id="cityNeed"></select>
     <button class="cta ghost row-act" type="button" onclick="locate('need')"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg><span data-i="gps">Use my location (ask first)</span></button>
     <div id="needMap" class="map-hide"></div>
-    <label data-i="grp">Blood group the hospital asked for</label>
+    <label class="required-field" data-i="grp">Blood group the hospital asked for</label>
     <div class="chips" id="needChips"></div>
     <div class="row2">
-      <div><label>Units</label><input id="units" type="number" min="1" max="20" value="2"/></div>
+      <div><label class="required-field">Units</label><input id="units" type="number" min="1" max="20" aria-required="true" required/></div>
       <div><label data-i="comp">Kind of bag</label>
         <select id="comp"><option value="whole">Whole</option><option value="platelets">Platelets</option><option value="plasma">Plasma</option></select>
       </div>
     </div>
     <label data-i="urg">When</label>
     <select id="urg"><option value="critical">Tonight / now</option><option value="scheduled">Planned surgery</option></select>
-    <label data-i="hosp">Hospital name</label>
-    <input id="hospital" value="SSKM"/>
+    <label class="required-field" data-i="hosp">Hospital name</label>
+    <input id="hospital" aria-required="true" required placeholder="Required"/>
     <div class="row2">
       <div><label>Ward</label><input id="ward" value="7"/></div>
       <div><label>Bed</label><input id="bed" value="12"/></div>
     </div>
     <label>Your phone (shown only after someone accepts)</label>
     <input id="seekerPhone" placeholder="optional"/>
-    <label><input type="checkbox" id="minor"/> Child patient — adult guardian name below</label>
-    <input id="guardian" placeholder="Guardian name"/>
+    <label><input type="checkbox" id="minor" onchange="toggleGuardianRequired(this.checked)"/> Child patient — adult guardian name below</label>
+    <label id="guardianLabel">Guardian name</label>
+    <input id="guardian" placeholder="Only required for a child patient"/>
     <button class="cta sos giant" type="button" onclick="createReq()">
       <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       <span class="giant-txt">Send to trusted people first<span class="sub">Family Ring hears first. No blast yet.</span></span>
@@ -168,10 +169,10 @@
     <select id="cityDon"></select>
     <button class="cta ghost row-act" type="button" onclick="locate('don')"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg><span data-i="gps">Use my location (ask first)</span></button>
     <div id="donMap" class="map-hide"></div>
-    <label data-i="myg">My blood group</label>
+    <label class="required-field" data-i="myg">My blood group</label>
     <div class="chips" id="donChips"></div>
-    <label>My phone number (family only sees it after I say yes)</label>
-    <input id="donPhone" placeholder="9000000000"/>
+    <label class="required-field">My phone number (family only sees it after I say yes)</label>
+    <input id="donPhone" inputmode="tel" aria-required="true" required placeholder="Required"/>
     <label><input type="checkbox" id="avail" checked/> I am free to give blood right now</label>
     <label class="tiny"><input type="checkbox" id="donWoman"/> I am a woman (optional — only used to ask women donors first, if that option is on)</label>
     <button class="cta trust row-act" type="button" onclick="saveDonor()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg><span data-i="save">Save me, then show who needs help</span></button>
@@ -217,8 +218,8 @@
     <div class="easy-panel hidden" id="ez-notebook">
       <p class="kicker" data-i="nbk">Family groups</p>
       <p class="hint" data-i="nbh">Short name + group. Only you see this. Never on a map.</p>
-      <label data-i="nbwho">Who</label>
-      <input id="nbWho" placeholder="Dadi"/>
+      <label class="required-field" data-i="nbwho">Who</label>
+      <input id="nbWho" aria-required="true" required placeholder="Required"/>
       <label data-i="nbgrp">Their group</label>
       <div class="chips" id="nbChips"></div>
       <button class="cta trust row-act" type="button" onclick="saveNote()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg><span data-i="nbsave">Save this name</span></button>
@@ -227,12 +228,12 @@
     <div class="easy-panel hidden" id="ez-lane">
       <p class="kicker" data-i="lanek">Monthly bag</p>
       <p class="hint" data-i="laneh">One tap for a regular need. Family Ring first. No city-wide ping.</p>
-      <label data-i="grp">Blood group the hospital asked for</label>
+      <label class="required-field" data-i="grp">Blood group the hospital asked for</label>
       <div class="chips" id="laneChips"></div>
-      <label data-i="hosp">Hospital name</label>
-      <input id="laneHosp" value="SSKM"/>
+      <label class="required-field" data-i="hosp">Hospital name</label>
+      <input id="laneHosp" aria-required="true" required placeholder="Required"/>
       <div class="row2">
-        <div><label>Units</label><input id="laneUnits" type="number" min="1" max="20" value="1"/></div>
+        <div><label class="required-field">Units</label><input id="laneUnits" type="number" min="1" max="20" aria-required="true" required/></div>
         <div><label data-i="lanedue">Day this month</label>
           <select id="laneDue"></select>
         </div>
@@ -242,8 +243,8 @@
     <div class="easy-panel hidden" id="ez-samenight">
       <p class="kicker" data-i="snk">Same hospital tonight</p>
       <p class="hint" data-i="snh">We only show that another family is here. Never a phone.</p>
-      <label data-i="hosp">Hospital name</label>
-      <input id="snHosp" value="SSKM"/>
+      <label class="required-field" data-i="hosp">Hospital name</label>
+      <input id="snHosp" aria-required="true" required placeholder="Required"/>
       <button class="cta ghost row-act" type="button" onclick="lookSameNight()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zM12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg><span data-i="snlook">Who else is here?</span></button>
       <div id="snMates"></div>
       <button class="cta ghost row-act" type="button" onclick="shareNight('wait')"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 4 6 4 10c0 5 8 12 8 12s8-7 8-12c0-4-4-8-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg><span data-i="snwait">Offer a shared wait</span></button>
@@ -252,6 +253,7 @@
     <div class="easy-panel hidden" id="ez-ride">
       <p class="kicker" data-i="ridek">This train only</p>
       <p class="hint" data-i="rideh">Pick the corridor. We hide your phone. When the minutes end, you vanish.</p>
+      <label class="required-field">Train corridor</label>
       <div class="chips" id="rideChips"></div>
       <label data-i="ridemin">Minutes on this ride</label>
       <select id="rideMin"><option value="20">20</option><option value="40" selected>40</option><option value="60">60</option></select>
@@ -263,7 +265,8 @@
       <button class="cta ghost row-act" type="button" onclick="dirNight()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 4.1A8 8 0 1 0 20 14.7 7 7 0 0 1 12.3 4.1z"/></svg><span data-i="nightgo">Show night desks</span></button>
     </div>
     <button class="cta ghost row-act" type="button" onclick="saveStandIn()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Let someone else answer for me (like my sister)</button>
-    <input id="standInName" placeholder="Their name, only you can see this"/>
+    <label class="required-field" for="standInName">Their name, only you can see this</label>
+    <input id="standInName" aria-required="true" required placeholder="Required"/>
     <button class="cta ghost row-act" type="button" onclick="inbox()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v12H5.2L4 17.2V4zm3 4h10v2H7V8zm0 4h7v2H7v-2z"/></svg>My messages</button>
     <button class="cta ghost row-act" type="button" onclick="assist()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v10H8l-4 4V4zm4 3h8v2H8V7z"/></svg>Ask a question (try: need B+ at SSKM)</button>
     <button class="cta ghost row-act" type="button" onclick="dir()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/></svg>Help near me</button>

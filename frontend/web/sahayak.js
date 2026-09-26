@@ -67,7 +67,7 @@ const I = {
     nighth:"रात में खुले ब्लड बैंकों की सूची। यह कोई लाइव कैमरा नहीं है।", nightgo:"रात में खुले ब्लड बैंक दिखाएँ"
   }
 };
-let lang="en", token="", needG="B+", donG="O+", nbG="O-", laneG="B+", rideC="Sealdah";
+let lang="en", token="", needG="", donG="", nbG="", laneG="", rideC="";
 let cities={}, lastReq="", lat=22.5726, lng=88.3639;
 let maps={}, channel="email";
 const RIDES=["Howrah","Sealdah","New Delhi"];
@@ -91,7 +91,7 @@ function paintChannel(){
   idLabel.textContent=I[lang][em?"email":"mobile"];
   email.type=em?"email":"tel";
   email.autocomplete=em?"email":"tel";
-  email.placeholder=em?"you@email.com":"10-digit mobile";
+  email.placeholder=lang==="hi"?"यह जानकारी आवश्यक है":"Required";
   email.inputMode=em?"email":"numeric";
 }
 function setChannel(c){
@@ -108,11 +108,40 @@ chips(rideChips, rideC, g=>rideC=g, RIDES);
 function chips(el, cur, set, list){
   const arr=list||GROUPS;
   if(!el) return;
-  el.innerHTML=arr.map(g=>`<button type="button" class="chip ${g===cur?"on":""}">${g}</button>`).join("");
-  [...el.children].forEach((b,i)=>b.onclick=()=>{ set(arr[i]); chips(el, arr[i], set, list); });
+  el.setAttribute("role","group");
+  el.setAttribute("aria-required","true");
+  el.setAttribute("aria-label",lang==="hi"?"एक विकल्प चुनें":"Choose one required option");
+  el.innerHTML=arr.map(g=>`<button type="button" class="chip ${g===cur?"on":""}" aria-pressed="${g===cur}">${g}</button>`).join("");
+  [...el.children].forEach((b,i)=>b.onclick=()=>{ set(arr[i]); clearFieldError(el); chips(el, arr[i], set, list); });
 }
 
 function say(id,t){ const n=document.getElementById(id); n.textContent=t; n.classList.remove("hidden"); }
+function clearFieldError(input){
+  const error=input&&input.nextElementSibling;
+  if(error&&error.classList.contains("field-error")) error.remove();
+  if(input) input.setAttribute("aria-invalid","false");
+}
+function requireField(input,label,valid){
+  const ok=valid===undefined?!!(input&&input.value.trim()):!!valid;
+  clearFieldError(input);
+  if(ok) return true;
+  const error=document.createElement("p");
+  error.className="field-error"; error.setAttribute("role","alert");
+  error.textContent=lang==="hi"?`${label} आवश्यक है।`:`${label} is required.`;
+  input.setAttribute("aria-invalid","true");
+  input.insertAdjacentElement("afterend",error);
+  input.scrollIntoView({behavior:"smooth",block:"center"});
+  if(input.matches("input,textarea,select")) input.focus({preventScroll:true});
+  return false;
+}
+document.addEventListener("input",e=>{if(e.target.matches("input,textarea")) clearFieldError(e.target);});
+document.addEventListener("change",e=>{if(e.target.matches("select")) clearFieldError(e.target);});
+function toggleGuardianRequired(required){
+  guardianLabel.classList.toggle("required-field",required);
+  guardian.setAttribute("aria-required",required?"true":"false");
+  guardian.required=required;
+  if(!required) clearFieldError(guardian);
+}
 function h(){return {Authorization:"Bearer "+token,"Content-Type":"application/json"};}
 function showHome(){ ["need","donate","more"].forEach(x=>document.getElementById(x).classList.add("hidden")); home.classList.remove("hidden"); }
 function show(id){
@@ -198,12 +227,22 @@ function locate(which){
 }
 
 async function otp(){
+  const identityOk=channel==="email"
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
+    : /^\+?[0-9\s()-]{8,20}$/.test(email.value.trim())&&email.value.replace(/\D/g,"").length>=8;
+  if(!requireField(email,channel==="email"?"A valid email":"A valid phone number",identityOk)) return;
   const body=channel==="mobile"?{channel:"mobile",phone:email.value,email:""}:{channel:"email",email:email.value,phone:""};
   const r=await fetch("/v1/auth/otp/request",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   const j=await r.json(); code.value=j.dev_otp||"";
   say("authStrip", j.human || (j.dev_otp ? "A code is ready. We never read SMS on your phone." : "Check your email."));
 }
 async function verify(){
+  const identityOk=channel==="email"
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
+    : /^\+?[0-9\s()-]{8,20}$/.test(email.value.trim())&&email.value.replace(/\D/g,"").length>=8;
+  const identityValid=requireField(email,channel==="email"?"A valid email":"A valid phone number",identityOk);
+  const codeValid=requireField(code,"The six-digit code",/^\d{6}$/.test(code.value.trim()));
+  if(!identityValid||!codeValid) return;
   const body=channel==="mobile"?{channel:"mobile",phone:email.value,email:"",code:code.value}:{channel:"email",email:email.value,phone:"",code:code.value};
   const r=await fetch("/v1/auth/otp/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   const j=await r.json(); if(!j.token){ say("authStrip", j.human||"That code did not match."); return; }
@@ -213,10 +252,16 @@ async function verify(){
 }
 
 async function createReq(){
+  const unitCount=Number(units.value);
+  const groupValid=requireField(needChips,"Blood group",!!needG);
+  const hospitalValid=requireField(hospital,"Hospital");
+  const unitsValid=requireField(units,"Units",Number.isInteger(unitCount)&&unitCount>=1&&unitCount<=20);
+  const guardianValid=!minor.checked||requireField(guardian,"Guardian name");
+  if(!groupValid||!hospitalValid||!unitsValid||!guardianValid) return;
   cityLL(cityNeed);
   if(seekerPhone.value) await fetch("/v1/me",{method:"POST",headers:h(),body:JSON.stringify({phone:seekerPhone.value, language:lang})});
   const body={
-    recipient_group:needG, units:Number(units.value||2), lat, lng,
+    recipient_group:needG, units:unitCount, lat, lng,
     hospital_name:hospital.value, ward:ward.value, bed:bed.value,
     urgency:urg.value, component:comp.value, language:lang,
     minor_patient:minor.checked, guardian_name:guardian.value,
@@ -247,6 +292,7 @@ async function createReq(){
 }
 
 async function fillPaste(){
+  if(!requireField(waPaste,"A message to parse")) return;
   const r=await fetch("/v1/need/parse",{method:"POST",headers:h(),body:JSON.stringify({text:waPaste.value,language:lang})});
   const j=await r.json();
   applyParsed(j.parsed||{});
@@ -270,6 +316,7 @@ function noteSlip(){
 
 async function fillSlip(){
   const f=slipFile.files&&slipFile.files[0];
+  if(!requireField(slipLine,"Slip text",!!(slipLine.value.trim()||waPaste.value.trim()))) return;
   const r=await fetch("/v1/need/slip",{method:"POST",headers:h(),body:JSON.stringify({
     text:slipLine.value||waPaste.value, filename:f?f.name:"", has_photo:!!f, language:lang
   })});
@@ -309,6 +356,9 @@ function paintPeople(el, people, canRemove){
 }
 
 async function saveNote(){
+  const nameValid=requireField(nbWho,"Name");
+  const groupValid=requireField(nbChips,"Blood group",!!nbG);
+  if(!nameValid||!groupValid) return;
   const r=await fetch("/v1/family-notebook",{method:"POST",headers:h(),body:JSON.stringify({who:nbWho.value, group:nbG})});
   const j=await r.json();
   say("moreStrip", j.human||"Saved.");
@@ -317,9 +367,14 @@ async function saveNote(){
 }
 
 async function sendMonthly(){
+  const unitCount=Number(laneUnits.value);
+  const groupValid=requireField(laneChips,"Blood group",!!laneG);
+  const hospitalValid=requireField(laneHosp,"Hospital");
+  const unitsValid=requireField(laneUnits,"Units",Number.isInteger(unitCount)&&unitCount>=1&&unitCount<=20);
+  if(!groupValid||!hospitalValid||!unitsValid) return;
   cityLL(cityNeed);
   const body={
-    recipient_group:laneG, units:Number(laneUnits.value||1), lat, lng,
+    recipient_group:laneG, units:unitCount, lat, lng,
     hospital_name:laneHosp.value, ward:"", bed:"",
     urgency:"scheduled", component:"whole", language:lang,
     lane:"regular", due_on:String(laneDue.value||"12")
@@ -333,6 +388,7 @@ async function sendMonthly(){
 }
 
 async function lookSameNight(){
+  if(!requireField(snHosp,"Hospital")) return;
   const r=await fetch("/v1/same-night?hospital="+encodeURIComponent(snHosp.value||""),{headers:h()});
   const j=await r.json();
   const mates=j.mates||[];
@@ -341,12 +397,14 @@ async function lookSameNight(){
 }
 
 async function shareNight(kind){
+  if(!requireField(snHosp,"Hospital")) return;
   const r=await fetch("/v1/same-night/share",{method:"POST",headers:h(),body:JSON.stringify({hospital_name:snHosp.value, kind})});
   const j=await r.json();
   say("moreStrip", j.human||"Offered.");
 }
 
 async function postRide(){
+  if(!requireField(rideChips,"Train corridor",!!rideC)) return;
   const r=await fetch("/v1/give-windows",{method:"POST",headers:h(),body:JSON.stringify({kind:"ride", corridor:rideC, minutes:Number(rideMin.value||40), lat, lng})});
   const j=await r.json();
   say("moreStrip", j.human||"Ride posted.");
@@ -363,6 +421,10 @@ async function dirNight(){
 }
 
 async function saveDonor(){
+  const digits=donPhone.value.replace(/\D/g,"");
+  const groupValid=requireField(donChips,"Blood group",!!donG);
+  const phoneValid=requireField(donPhone,"A valid phone number",/^\+?[0-9\s()-]+$/.test(donPhone.value.trim())&&digits.length>=8&&digits.length<=15);
+  if(!groupValid||!phoneValid) return;
   cityLL(cityDon);
   await fetch("/v1/donors/me",{method:"POST",headers:h(),body:JSON.stringify({
     blood_group:donG, lat, lng, available:avail.checked, self_hold:hold.checked, phone:donPhone.value, city:cityDon.value,
@@ -456,7 +518,9 @@ async function stillNeed(){
   say("needStrip", j.human||"Family Ring again.");
 }
 async function saveStandIn(){
-  const name=(document.getElementById("standInName")||{}).value||"sister";
+  const field=document.getElementById("standInName");
+  if(!requireField(field,"Stand-in name")) return;
+  const name=field.value.trim();
   const r=await fetch("/v1/stand-in",{method:"POST",headers:h(),body:JSON.stringify({name, stand_in_user_id:name})});
   const j=await r.json();
   say("moreStrip", j.human||"Saved.");

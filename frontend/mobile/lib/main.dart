@@ -478,10 +478,12 @@ class GateScreen extends StatefulWidget {
 }
 
 class _GateScreenState extends State<GateScreen> {
-  final email = TextEditingController(text: "priya@sahayak.local");
+  final email = TextEditingController();
   final code = TextEditingController();
   bool mobile = false;
   String msg = "";
+  String? identityError;
+  String? codeError;
   bool busy = true;
 
   @override
@@ -497,7 +499,22 @@ class _GateScreenState extends State<GateScreen> {
 
   L get t => L(widget.hi);
 
+  bool _validIdentity() {
+    final value = email.text.trim();
+    final valid = mobile
+        ? RegExp(r"^\+?[0-9\s()-]{8,20}$").hasMatch(value) &&
+            value.replaceAll(RegExp(r"\D"), "").length >= 8
+        : RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").hasMatch(value);
+    setState(() => identityError = valid
+        ? null
+        : widget.hi
+            ? "यह जानकारी आवश्यक है। सही ${mobile ? 'फोन नंबर' : 'ईमेल'} लिखें।"
+            : "This field is required. Enter a valid ${mobile ? 'phone number' : 'email'}.");
+    return valid;
+  }
+
   Future<void> _otp() async {
+    if (!_validIdentity()) return;
     final j = await api.post(
         "/v1/auth/otp/request",
         mobile
@@ -509,6 +526,14 @@ class _GateScreenState extends State<GateScreen> {
   }
 
   Future<void> _verify() async {
+    final identityValid = _validIdentity();
+    final validCode = RegExp(r"^\d{6}$").hasMatch(code.text.trim());
+    setState(() => codeError = validCode
+        ? null
+        : widget.hi
+            ? "छह अंकों का कोड आवश्यक है।"
+            : "The six-digit code is required.");
+    if (!identityValid || !validCode) return;
     final j = await api.post(
       "/v1/auth/otp/verify",
       mobile
@@ -584,18 +609,31 @@ class _GateScreenState extends State<GateScreen> {
                             label: Text(t.viaEmail),
                             selected: !mobile,
                             selectedColor: kGold,
-                            onSelected: (_) => setState(() => mobile = false)),
+                            onSelected: (_) => setState(() {
+                                  mobile = false;
+                                  identityError = null;
+                                })),
                         ChoiceChip(
                             label: Text(t.viaMobile),
                             selected: mobile,
                             selectedColor: kGold,
-                            onSelected: (_) => setState(() => mobile = true)),
+                            onSelected: (_) => setState(() {
+                                  mobile = true;
+                                  identityError = null;
+                                })),
                       ],
                     ),
                     TextField(
                       controller: email,
                       decoration: InputDecoration(
-                          labelText: mobile ? t.mobile : t.email),
+                          labelText: "${mobile ? t.mobile : t.email} *",
+                          hintText:
+                              widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                          errorText: identityError),
+                      onChanged: (_) {
+                        if (identityError != null)
+                          setState(() => identityError = null);
+                      },
                       keyboardType: mobile
                           ? TextInputType.phone
                           : TextInputType.emailAddress,
@@ -615,8 +653,16 @@ class _GateScreenState extends State<GateScreen> {
                             letterSpacing: 2, fontSize: 11, color: kGold)),
                     TextField(
                         controller: code,
-                        decoration: InputDecoration(labelText: t.six),
-                        keyboardType: TextInputType.number),
+                        decoration: InputDecoration(
+                            labelText: "${t.six} *",
+                            hintText:
+                                widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                            errorText: codeError),
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) {
+                          if (codeError != null)
+                            setState(() => codeError = null);
+                        }),
                     const SizedBox(height: 12),
                     FilledButton(
                         onPressed: _verify,
@@ -716,7 +762,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           gradient: const LinearGradient(
                             colors: [Color(0xFF2A1624), Color(0xFF123B39)],
                           ),
-                          border: Border.all(color: kGold.withValues(alpha: 0.7)),
+                          border:
+                              Border.all(color: kGold.withValues(alpha: 0.7)),
                           boxShadow: [
                             BoxShadow(
                               color: kGold.withValues(alpha: 0.14),
@@ -788,17 +835,19 @@ class NeedBloodScreen extends StatefulWidget {
 }
 
 class _NeedBloodScreenState extends State<NeedBloodScreen> {
-  String group = "B+";
+  String group = "";
   String city = "Kolkata";
   String component = "whole";
   String urgency = "critical";
   final paste = TextEditingController();
   final slip = TextEditingController();
+  String? pasteError;
+  String? slipError;
   XFile? slipPhoto;
-  final hospital = TextEditingController(text: "SSKM");
-  final ward = TextEditingController(text: "7");
-  final bed = TextEditingController(text: "12");
-  final units = TextEditingController(text: "2");
+  final hospital = TextEditingController();
+  final ward = TextEditingController();
+  final bed = TextEditingController();
+  final units = TextEditingController();
   final phone = TextEditingController();
   final guardian = TextEditingController();
   bool minor = false;
@@ -808,6 +857,10 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
   String lastId = "";
   LatLng here = cities["Kolkata"]!;
   String status = "";
+  String? hospitalError;
+  String? unitsError;
+  String? guardianError;
+  String? groupError;
   List<Map<String, dynamic>> notebook = [];
 
   L get t => L(widget.hi);
@@ -832,6 +885,18 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
   }
 
   Future<void> _fillSlip() async {
+    if (slip.text.trim().isEmpty && paste.text.trim().isEmpty) {
+      setState(() {
+        slipError = widget.hi
+            ? "पर्ची के शब्द लिखें।"
+            : "Enter the words from the slip.";
+        status = widget.hi
+            ? "आगे बढ़ने के लिए पर्ची के शब्द आवश्यक हैं।"
+            : "Slip text is required to continue.";
+      });
+      return;
+    }
+    setState(() => slipError = null);
     final j = await api.post("/v1/need/slip", {
       "text": slip.text.isNotEmpty ? slip.text : paste.text,
       "language": widget.hi ? "hi" : "en",
@@ -861,12 +926,18 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
     setState(() {
       slipPhoto = picked;
       status = widget.hi
-        ? "फोटो इसी फोन पर है। पर्ची के शब्द लिखें, फिर फॉर्म भरें।"
-        : "Photo stays on this phone. Type the slip words, then fill the form.";
+          ? "फोटो इसी फोन पर है। पर्ची के शब्द लिखें, फिर फॉर्म भरें।"
+          : "Photo stays on this phone. Type the slip words, then fill the form.";
     });
   }
 
   Future<void> _fillPaste() async {
+    if (paste.text.trim().isEmpty) {
+      setState(() =>
+          pasteError = widget.hi ? "संदेश चिपकाएँ।" : "Paste a message first.");
+      return;
+    }
+    setState(() => pasteError = null);
     final j = await api.post("/v1/need/parse",
         {"text": paste.text, "language": widget.hi ? "hi" : "en"});
     final p = j["parsed"] as Map<String, dynamic>? ?? {};
@@ -887,12 +958,39 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
   }
 
   Future<void> _send() async {
+    final unitCount = int.tryParse(units.text.trim());
+    final validGroup = group.isNotEmpty;
+    final validHospital = hospital.text.trim().isNotEmpty;
+    final validUnits = unitCount != null && unitCount >= 1 && unitCount <= 20;
+    final validGuardian = !minor || guardian.text.trim().isNotEmpty;
+    setState(() {
+      groupError = validGroup
+          ? null
+          : (widget.hi ? "ब्लड ग्रुप चुनें।" : "Choose a blood group.");
+      hospitalError = validHospital
+          ? null
+          : (widget.hi ? "अस्पताल आवश्यक है।" : "Hospital is required.");
+      unitsError = validUnits
+          ? null
+          : (widget.hi ? "1 से 20 यूनिट लिखें।" : "Enter 1 to 20 units.");
+      guardianError = validGuardian || !minor
+          ? null
+          : (widget.hi
+              ? "अभिभावक का नाम आवश्यक है।"
+              : "Guardian name is required.");
+      if (!validGroup || !validHospital || !validUnits || !validGuardian) {
+        status = widget.hi
+            ? "तारांकित जानकारी भरें।"
+            : "Complete the required fields.";
+      }
+    });
+    if (!validGroup || !validHospital || !validUnits || !validGuardian) return;
     await api.post(
         "/v1/me", {"phone": phone.text, "language": widget.hi ? "hi" : "en"});
     final body = {
       "recipient_group": group,
       "component": component,
-      "units": int.tryParse(units.text) ?? 2,
+      "units": unitCount,
       "lat": here.latitude,
       "lng": here.longitude,
       "hospital_name": hospital.text,
@@ -984,7 +1082,12 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                       maxLines: 3,
                       decoration: InputDecoration(
                           labelText: t.paste,
-                          hintText: "B+ 2 units SSKM ward 7 now"),
+                          hintText: "B+ 2 units SSKM ward 7 now",
+                          errorText: pasteError),
+                      onChanged: (_) {
+                        if (pasteError != null)
+                          setState(() => pasteError = null);
+                      },
                     ),
                     TextButton.icon(
                         onPressed: _fillPaste,
@@ -996,7 +1099,11 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                       controller: slip,
                       decoration: InputDecoration(
                           labelText: t.slipLine,
-                          hintText: "B+ 2 units SSKM ward 7"),
+                          hintText: "B+ 2 units SSKM ward 7",
+                          errorText: slipError),
+                      onChanged: (_) {
+                        if (slipError != null) setState(() => slipError = null);
+                      },
                     ),
                     TextButton.icon(
                         onPressed: _fillSlip,
@@ -1004,13 +1111,16 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                             color: kGold),
                         label: Text(t.slipFill,
                             style: const TextStyle(color: kGold))),
-                      TextButton.icon(
+                    TextButton.icon(
                         onPressed: _pickSlipPhoto,
-                        icon: const Icon(Icons.camera_alt_outlined,
-                          color: kGold),
-                        label: Text(slipPhoto?.name ??
-                          (widget.hi ? "पर्ची की फोटो लें" : "Take a photo of the slip"),
-                          style: const TextStyle(color: kGold))),
+                        icon:
+                            const Icon(Icons.camera_alt_outlined, color: kGold),
+                        label: Text(
+                            slipPhoto?.name ??
+                                (widget.hi
+                                    ? "पर्ची की फोटो लें"
+                                    : "Take a photo of the slip"),
+                            style: const TextStyle(color: kGold))),
                     if (notebook.isNotEmpty)
                       Wrap(
                         spacing: 8,
@@ -1024,6 +1134,9 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                             )
                             .toList(),
                       ),
+                    Text(widget.hi ? "ब्लड ग्रुप *" : "Blood group *"),
+                    if (groupError != null)
+                      Text(groupError!, style: const TextStyle(color: kSos)),
                     Wrap(
                       spacing: 8,
                       children: groups
@@ -1031,11 +1144,22 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                               label: Text(g),
                               selected: group == g,
                               selectedColor: kGold,
-                              onSelected: (_) => setState(() => group = g)))
+                              onSelected: (_) => setState(() {
+                                    group = g;
+                                    groupError = null;
+                                  })))
                           .toList(),
                     ),
                     TextField(
-                        decoration: InputDecoration(labelText: t.hospital),
+                        decoration: InputDecoration(
+                            labelText: "${t.hospital} *",
+                            hintText:
+                                widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                            errorText: hospitalError),
+                        onChanged: (_) {
+                          if (hospitalError != null)
+                            setState(() => hospitalError = null);
+                        },
                         controller: hospital),
                     TextField(
                         decoration: const InputDecoration(labelText: "Ward"),
@@ -1044,7 +1168,15 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                         decoration: const InputDecoration(labelText: "Bed"),
                         controller: bed),
                     TextField(
-                        decoration: const InputDecoration(labelText: "Units"),
+                        decoration: InputDecoration(
+                            labelText: widget.hi ? "यूनिट *" : "Units *",
+                            hintText:
+                                widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                            errorText: unitsError),
+                        onChanged: (_) {
+                          if (unitsError != null)
+                            setState(() => unitsError = null);
+                        },
                         controller: units,
                         keyboardType: TextInputType.number),
                     DropdownButton<String>(
@@ -1080,8 +1212,15 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                         onChanged: (v) => setState(() => minor = v)),
                     if (minor)
                       TextField(
-                          decoration:
-                              const InputDecoration(labelText: "Guardian name"),
+                          decoration: InputDecoration(
+                              labelText: widget.hi
+                                  ? "अभिभावक का नाम *"
+                                  : "Guardian name *",
+                              errorText: guardianError),
+                          onChanged: (_) {
+                            if (guardianError != null)
+                              setState(() => guardianError = null);
+                          },
                           controller: guardian),
                     const SizedBox(height: 12),
                     Giant(
@@ -1147,7 +1286,7 @@ class DonateScreen extends StatefulWidget {
 }
 
 class _DonateScreenState extends State<DonateScreen> {
-  String group = "O+";
+  String group = "";
   bool available = true;
   bool selfHold = false;
   bool woman = false;
@@ -1160,11 +1299,29 @@ class _DonateScreenState extends State<DonateScreen> {
   LatLng here = cities["Kolkata"]!;
   String status = "";
   List<dynamic> open = [];
-  final phone = TextEditingController(text: "9000000000");
+  final phone = TextEditingController();
+  String? phoneError;
+  String? groupError;
 
   L get t => L(widget.hi);
 
   Future<void> _save() async {
+    final digits = phone.text.replaceAll(RegExp(r"\D"), "");
+    final validPhone = RegExp(r"^\+?[0-9\s()-]+$").hasMatch(phone.text.trim()) &&
+        digits.length >= 8 &&
+        digits.length <= 15;
+    final validGroup = group.isNotEmpty;
+    setState(() {
+      groupError = validGroup
+          ? null
+          : (widget.hi ? "ब्लड ग्रुप चुनें।" : "Choose a blood group.");
+      phoneError = validPhone
+          ? null
+          : (widget.hi
+              ? "सही फोन नंबर आवश्यक है।"
+              : "A valid phone number is required.");
+    });
+    if (!validPhone || !validGroup) return;
     final donorResult = await api.post("/v1/donors/me", {
       "blood_group": group,
       "lat": here.latitude,
@@ -1274,13 +1431,23 @@ class _DonateScreenState extends State<DonateScreen> {
                       language: widget.hi ? "hi" : "en",
                     ),
                     Wrap(
+                      children: [
+                        Text(widget.hi ? "ब्लड ग्रुप *" : "Blood group *")
+                      ],
+                    ),
+                    if (groupError != null)
+                      Text(groupError!, style: const TextStyle(color: kSos)),
+                    Wrap(
                       spacing: 8,
                       children: groups
                           .map((g) => ChoiceChip(
                               label: Text(g),
                               selected: group == g,
                               selectedColor: kGold,
-                              onSelected: (_) => setState(() => group = g)))
+                              onSelected: (_) => setState(() {
+                                    group = g;
+                                    groupError = null;
+                                  })))
                           .toList(),
                     ),
                     SwitchListTile(
@@ -1293,7 +1460,16 @@ class _DonateScreenState extends State<DonateScreen> {
                         onChanged: (v) => setState(() => selfHold = v)),
                     TextField(
                         controller: phone,
-                        decoration: const InputDecoration(labelText: "Phone")),
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                            labelText: widget.hi ? "फोन *" : "Phone *",
+                            hintText:
+                                widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                            errorText: phoneError),
+                        onChanged: (_) {
+                          if (phoneError != null)
+                            setState(() => phoneError = null);
+                        }),
                     FilledButton.icon(
                         onPressed: _save,
                         icon: const Icon(Icons.check),
@@ -1375,26 +1551,42 @@ class MoreScreen extends StatelessWidget {
 
   Future<void> _standIn(BuildContext context) async {
     final name = TextEditingController();
+    var showNameError = false;
     final saved = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: kInk,
-        title: Text(hi ? "किसी भरोसेमंद व्यक्ति को चुनें" : "Choose your stand-in"),
-        content: TextField(
-          controller: name,
-          autofocus: true,
-          decoration: InputDecoration(
-              labelText: hi ? "नाम" : "Their name",
-              hintText: hi ? "बहन" : "Sister"),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, refreshDialog) => AlertDialog(
+          backgroundColor: kInk,
+          title: Text(
+              hi ? "किसी भरोसेमंद व्यक्ति को चुनें" : "Choose your stand-in"),
+          content: TextField(
+            controller: name,
+            autofocus: true,
+            decoration: InputDecoration(
+                labelText: hi ? "नाम *" : "Name *",
+                hintText: hi ? "यह जानकारी आवश्यक है" : "Required",
+                errorText: showNameError
+                    ? (hi ? "नाम आवश्यक है।" : "Name is required.")
+                    : null),
+            onChanged: (_) {
+              if (showNameError) refreshDialog(() => showNameError = false);
+            },
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(t.home)),
+            FilledButton(
+                onPressed: () {
+                  if (name.text.trim().isEmpty) {
+                    refreshDialog(() => showNameError = true);
+                    return;
+                  }
+                  Navigator.pop(dialogContext, true);
+                },
+                child: Text(hi ? "सेव करें" : "Save")),
+          ],
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(t.home)),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(hi ? "सेव करें" : "Save")),
-        ],
       ),
     );
     if (saved != true || name.text.trim().isEmpty || !context.mounted) return;
@@ -1567,15 +1759,15 @@ class MoreScreen extends StatelessWidget {
                             : "Tell others the place and time you're free"),
                         onTap: () => _snack(context, "/v1/give-windows",
                             {"place": "Howrah", "until": "19:00"})),
-                      ListTile(
+                    ListTile(
                         leading: const Icon(Icons.person_add_alt_1_outlined,
-                          color: kGold),
+                            color: kGold),
                         title: Text(hi
-                          ? "किसी भरोसेमंद व्यक्ति को बताएं"
-                          : "Let someone else answer for me"),
+                            ? "किसी भरोसेमंद व्यक्ति को बताएं"
+                            : "Let someone else answer for me"),
                         subtitle: Text(hi
-                          ? "जैसे आपकी बहन या परिवार का सदस्य"
-                          : "Choose a trusted person to help your family"),
+                            ? "जैसे आपकी बहन या परिवार का सदस्य"
+                            : "Choose a trusted person to help your family"),
                         onTap: () => _standIn(context)),
                     ListTile(
                         leading: const Icon(Icons.directions_car_outlined,
@@ -1767,16 +1959,54 @@ class EasyExtraScreen extends StatefulWidget {
 }
 
 class _EasyExtraScreenState extends State<EasyExtraScreen> {
-  String group = "O-";
-  String corridor = "Sealdah";
+  String group = "";
+  String corridor = "";
   String due = "12";
   String status = "";
   List<Map<String, dynamic>> people = [];
   List<dynamic> mates = [];
   List<dynamic> night = [];
   final who = TextEditingController();
-  final hosp = TextEditingController(text: "SSKM");
-  final units = TextEditingController(text: "1");
+  final hosp = TextEditingController();
+  final units = TextEditingController();
+  String? whoError;
+  String? groupError;
+  String? hospitalError;
+  String? unitsError;
+  String? corridorError;
+
+  bool _requireHospital() {
+    final valid = hosp.text.trim().isNotEmpty;
+    setState(() => hospitalError = valid
+        ? null
+        : (widget.hi ? "अस्पताल आवश्यक है।" : "Hospital is required."));
+    return valid;
+  }
+
+  bool _requireGroup() {
+    final valid = group.isNotEmpty;
+    setState(() => groupError = valid
+        ? null
+        : (widget.hi ? "ब्लड ग्रुप चुनें।" : "Choose a blood group."));
+    return valid;
+  }
+
+  bool _requireCorridor() {
+    final valid = corridor.isNotEmpty;
+    setState(() => corridorError = valid
+        ? null
+        : (widget.hi ? "ट्रेन का रास्ता चुनें।" : "Choose a train corridor."));
+    return valid;
+  }
+
+  bool _requireUnits() {
+    final value = int.tryParse(units.text.trim());
+    final valid = value != null && value >= 1 && value <= 20;
+    setState(() => unitsError = valid
+        ? null
+        : (widget.hi ? "1 से 20 यूनिट लिखें।" : "Enter 1 to 20 units."));
+    return valid;
+  }
 
   String get title {
     switch (widget.kind) {
@@ -1846,10 +2076,16 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
       case EasyKind.notebook:
         return Column(
           children: [
+            Text(widget.hi ? "ब्लड ग्रुप *" : "Blood group *"),
             TextField(
                 controller: who,
-                decoration:
-                    const InputDecoration(labelText: "Who", hintText: "Dadi")),
+                decoration: InputDecoration(
+                    labelText: widget.hi ? "किसका नाम *" : "Name *",
+                    hintText: widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                    errorText: whoError),
+                onChanged: (_) {
+                  if (whoError != null) setState(() => whoError = null);
+                }),
             Wrap(
               spacing: 8,
               children: groups
@@ -1857,11 +2093,22 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
                       label: Text(g),
                       selected: group == g,
                       selectedColor: kGold,
-                      onSelected: (_) => setState(() => group = g)))
+                      onSelected: (_) => setState(() {
+                            group = g;
+                            groupError = null;
+                          })))
                   .toList(),
             ),
+            if (groupError != null)
+              Text(groupError!, style: const TextStyle(color: kSos)),
             FilledButton.icon(
               onPressed: () async {
+                final groupValid = _requireGroup();
+                final nameValid = who.text.trim().isNotEmpty;
+                setState(() => whoError = nameValid
+                    ? null
+                    : (widget.hi ? "नाम आवश्यक है।" : "Name is required."));
+                if (!groupValid || !nameValid) return;
                 final j = await api.post(
                     "/v1/family-notebook", {"who": who.text, "group": group});
                 if (!mounted) return;
@@ -1883,6 +2130,7 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
             Text(widget.hi
                 ? "हर महीने की ज़रूरत। शांत तरीके से। सिर्फ़ भरोसे के परिवार को बताया जाता है।"
                 : "For a need that repeats every month. Sent quietly, only to your trusted family."),
+            Text(widget.hi ? "ब्लड ग्रुप *" : "Blood group *"),
             Wrap(
               spacing: 8,
               children: groups
@@ -1890,15 +2138,33 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
                       label: Text(g),
                       selected: group == g,
                       selectedColor: kGold,
-                      onSelected: (_) => setState(() => group = g)))
+                      onSelected: (_) => setState(() {
+                            group = g;
+                            groupError = null;
+                          })))
                   .toList(),
             ),
+            if (groupError != null)
+              Text(groupError!, style: const TextStyle(color: kSos)),
             TextField(
                 controller: hosp,
-                decoration: const InputDecoration(labelText: "Hospital")),
+                decoration: InputDecoration(
+                    labelText: widget.hi ? "अस्पताल *" : "Hospital *",
+                    hintText: widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                    errorText: hospitalError),
+                onChanged: (_) {
+                  if (hospitalError != null)
+                    setState(() => hospitalError = null);
+                }),
             TextField(
                 controller: units,
-                decoration: const InputDecoration(labelText: "Units"),
+                decoration: InputDecoration(
+                    labelText: widget.hi ? "यूनिट *" : "Units *",
+                    hintText: widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                    errorText: unitsError),
+                onChanged: (_) {
+                  if (unitsError != null) setState(() => unitsError = null);
+                },
                 keyboardType: TextInputType.number),
             DropdownButton<String>(
               value: due,
@@ -1911,6 +2177,10 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
             ),
             FilledButton.icon(
               onPressed: () async {
+                final groupValid = _requireGroup();
+                final hospitalValid = _requireHospital();
+                final unitsValid = _requireUnits();
+                if (!groupValid || !hospitalValid || !unitsValid) return;
                 final j = await api.post("/v1/blood-requests", {
                   "recipient_group": group,
                   "component": "whole",
@@ -1937,9 +2207,17 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
           children: [
             TextField(
                 controller: hosp,
-                decoration: const InputDecoration(labelText: "Hospital")),
+                decoration: InputDecoration(
+                    labelText: widget.hi ? "अस्पताल *" : "Hospital *",
+                    hintText: widget.hi ? "यह जानकारी आवश्यक है" : "Required",
+                    errorText: hospitalError),
+                onChanged: (_) {
+                  if (hospitalError != null)
+                    setState(() => hospitalError = null);
+                }),
             FilledButton.icon(
               onPressed: () async {
+                if (!_requireHospital()) return;
                 final j = await api.get(
                     "/v1/same-night?hospital=${Uri.encodeQueryComponent(hosp.text)}");
                 if (!mounted) return;
@@ -1960,6 +2238,7 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
             }),
             TextButton.icon(
               onPressed: () async {
+                if (!_requireHospital()) return;
                 final j = await api.post("/v1/same-night/share",
                     {"hospital_name": hosp.text, "kind": "wait"});
                 if (mounted) setState(() => status = humanOf(j));
@@ -1970,6 +2249,7 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
             ),
             TextButton.icon(
               onPressed: () async {
+                if (!_requireHospital()) return;
                 final j = await api.post("/v1/same-night/share",
                     {"hospital_name": hosp.text, "kind": "cab"});
                 if (mounted) setState(() => status = humanOf(j));
@@ -1983,6 +2263,9 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
       case EasyKind.ride:
         return Column(
           children: [
+            Text(widget.hi ? "ट्रेन का रास्ता *" : "Train corridor *"),
+            if (corridorError != null)
+              Text(corridorError!, style: const TextStyle(color: kSos)),
             Wrap(
               spacing: 8,
               children: ["Howrah", "Sealdah", "New Delhi"]
@@ -1990,11 +2273,15 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
                       label: Text(c),
                       selected: corridor == c,
                       selectedColor: kGold,
-                      onSelected: (_) => setState(() => corridor = c)))
+                      onSelected: (_) => setState(() {
+                            corridor = c;
+                            corridorError = null;
+                          })))
                   .toList(),
             ),
             FilledButton.icon(
               onPressed: () async {
+                if (!_requireCorridor()) return;
                 final j = await api.post("/v1/give-windows", {
                   "kind": "ride",
                   "corridor": corridor,

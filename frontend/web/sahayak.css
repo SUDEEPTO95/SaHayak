@@ -39,6 +39,9 @@ body::before {
 .console-wrap { max-width: 1180px; }
 .console-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 .console-grid .glass { min-width: 0; }
+.required-field::after { content: " *"; color: #ff8da2; font-weight: 800; }
+.field-error { margin: 5px 0 10px; color: #ff9aaa; font: 600 13px/1.35 "Syne", sans-serif; }
+[aria-invalid="true"] { border-color: #ff7189 !important; box-shadow: 0 0 0 2px rgba(255, 113, 137, .18); }
 .mark {
   display: flex; align-items: center; gap: 14px; margin-bottom: 28px;
 }

@@ -6,7 +6,7 @@
   <title>SaHayak Console · blood help nearby</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Syne:wght@600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="/app/sahayak.css?v=logo-20260926"/>
+  <link rel="stylesheet" href="/app/sahayak.css?v=required-20260926"/>
   <script src="/app/sahayak-block.js?v=pause"></script>
 </head>
 <body>
@@ -23,11 +23,11 @@
   <div class="grid2 console-grid">
     <section class="glass">
       <p class="tiny">SIGN IN · EMAIL CODE</p>
-      <label>Work email</label>
-      <input id="email" value="owner@sahayak.local"/>
+      <label class="required-field">Work email</label>
+      <input id="email" type="email" autocomplete="email" aria-required="true" required placeholder="Required"/>
       <button class="cta trust" type="button" onclick="otp()">Send code</button>
-      <label>Code</label>
-      <input id="code"/>
+      <label class="required-field">Code</label>
+      <input id="code" inputmode="numeric" maxlength="6" aria-required="true" required placeholder="Required"/>
       <button class="cta sos" type="button" onclick="verify()">Open the hospital board</button>
       <p class="strip hidden" id="out"></p>
     </section>
@@ -44,8 +44,8 @@
     <section class="glass">
       <p class="tiny">DIRECTORY · HOURS</p>
       <p class="strip" id="dir">Sign in to load verified places.</p>
-      <label>Add place (owner)</label>
-      <input id="newPlace" placeholder="Name"/>
+      <label class="required-field">Add place (owner)</label>
+      <input id="newPlace" aria-required="true" required placeholder="Required"/>
       <button class="cta ghost" type="button" onclick="addPlace()">Add hospital to directory</button>
     </section>
     <section class="glass">
@@ -68,12 +68,24 @@
 let token="", map, disasterOn=false, festOn=false;
 function h(){return {Authorization:"Bearer "+token,"Content-Type":"application/json"};}
 function say(id,t){ const n=document.getElementById(id); n.textContent=t; n.classList.remove("hidden"); }
+function checkRequired(input,label,valid=!!input.value.trim()){
+  let error=input.nextElementSibling;
+  if(error&&error.classList.contains("field-error")) error.remove();
+  input.setAttribute("aria-invalid", valid?"false":"true");
+  if(!valid){ error=document.createElement("p"); error.className="field-error"; error.setAttribute("role","alert"); error.textContent=label+" is required."; input.insertAdjacentElement("afterend",error); input.focus(); }
+  return valid;
+}
+document.addEventListener("input",e=>{const n=e.target;if(n.matches("input,textarea")){const x=n.nextElementSibling;if(x&&x.classList.contains("field-error"))x.remove();n.setAttribute("aria-invalid","false");}});
 async function otp(){
+  if(!checkRequired(email,"A valid work email",/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))) return;
   const r=await fetch("/v1/auth/otp/request",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email.value})});
   const j=await r.json(); code.value=j.dev_otp||"";
   say("out", j.dev_otp?"Code filled for this computer. In production it arrives by email.":(j.human||"Code sent."));
 }
 async function verify(){
+  const emailValid=checkRequired(email,"A valid work email",/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()));
+  const codeValid=checkRequired(code,"The six-digit code",/^\d{6}$/.test(code.value.trim()));
+  if(!emailValid||!codeValid) return;
   const r=await fetch("/v1/auth/otp/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email.value,code:code.value})});
   const j=await r.json(); token=j.token;
   if(!token){ say("out", j.human||"Could not sign in. Use the owner email on this computer."); return; }
@@ -96,7 +108,8 @@ async function refresh(){
   (d.entries||[]).forEach(e=>{ if(e.lat) L.marker([e.lat,e.lng]).addTo(map).bindPopup(e.name+"<br>"+(e.hours||"")); });
 }
 async function addPlace(){
-  await fetch("/v1/directory",{method:"POST",headers:h(),body:JSON.stringify({kind:"hospital",name:newPlace.value||"New ward",state:"West Bengal",hours:"08:00-20:00",lat:22.56,lng:88.35,phone:"033-000000",open_now:true})});
+  if(!checkRequired(newPlace,"Place name")) return;
+  await fetch("/v1/directory",{method:"POST",headers:h(),body:JSON.stringify({kind:"hospital",name:newPlace.value.trim(),state:"West Bengal",hours:"08:00-20:00",lat:22.56,lng:88.35,phone:"033-000000",open_now:true})});
   await refresh();
 }
 async function makeCamp(){

@@ -66,7 +66,3 @@ flutter {
 dependencies {
     implementation("com.google.android.gms:play-services-location:21.1.0")
 }
-
-dependencies {
-    implementation("com.google.android.gms:play-services-location:21.1.0")
-}

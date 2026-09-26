@@ -8,6 +8,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_map/flutter_map.dart";
 import "package:geolocator/geolocator.dart";
+import "package:image_picker/image_picker.dart";
 import "package:latlong2/latlong.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:url_launcher/url_launcher.dart";
@@ -740,6 +741,7 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
   String urgency = "critical";
   final paste = TextEditingController();
   final slip = TextEditingController();
+  XFile? slipPhoto;
   final hospital = TextEditingController(text: "SSKM");
   final ward = TextEditingController(text: "7");
   final bed = TextEditingController(text: "12");
@@ -780,7 +782,8 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
     final j = await api.post("/v1/need/slip", {
       "text": slip.text.isNotEmpty ? slip.text : paste.text,
       "language": widget.hi ? "hi" : "en",
-      "has_photo": false,
+      "filename": slipPhoto?.name ?? "",
+      "has_photo": slipPhoto != null,
     });
     final p = j["parsed"] as Map<String, dynamic>? ?? {};
     setState(() {
@@ -796,6 +799,17 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
       if (p["component"] is String) component = p["component"] as String;
       if (p["urgency"] is String) urgency = p["urgency"] as String;
       status = humanOf(j);
+    });
+  }
+
+  Future<void> _pickSlipPhoto() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (!mounted || picked == null) return;
+    setState(() {
+      slipPhoto = picked;
+      status = widget.hi
+        ? "फोटो इसी फोन पर है। पर्ची के शब्द लिखें, फिर फॉर्म भरें।"
+        : "Photo stays on this phone. Type the slip words, then fill the form.";
     });
   }
 
@@ -937,6 +951,13 @@ class _NeedBloodScreenState extends State<NeedBloodScreen> {
                             color: kGold),
                         label: Text(t.slipFill,
                             style: const TextStyle(color: kGold))),
+                      TextButton.icon(
+                        onPressed: _pickSlipPhoto,
+                        icon: const Icon(Icons.camera_alt_outlined,
+                          color: kGold),
+                        label: Text(slipPhoto?.name ??
+                          (widget.hi ? "पर्ची की फोटो लें" : "Take a photo of the slip"),
+                          style: const TextStyle(color: kGold))),
                     if (notebook.isNotEmpty)
                       Wrap(
                         spacing: 8,
@@ -1299,6 +1320,37 @@ class MoreScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _standIn(BuildContext context) async {
+    final name = TextEditingController();
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: kInk,
+        title: Text(hi ? "किसी भरोसेमंद व्यक्ति को चुनें" : "Choose your stand-in"),
+        content: TextField(
+          controller: name,
+          autofocus: true,
+          decoration: InputDecoration(
+              labelText: hi ? "नाम" : "Their name",
+              hintText: hi ? "बहन" : "Sister"),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(t.home)),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(hi ? "सेव करें" : "Save")),
+        ],
+      ),
+    );
+    if (saved != true || name.text.trim().isEmpty || !context.mounted) return;
+    await _snack(context, "/v1/stand-in", {
+      "name": name.text.trim(),
+      "stand_in_user_id": name.text.trim(),
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1462,6 +1514,16 @@ class MoreScreen extends StatelessWidget {
                             : "Tell others the place and time you're free"),
                         onTap: () => _snack(context, "/v1/give-windows",
                             {"place": "Howrah", "until": "19:00"})),
+                      ListTile(
+                        leading: const Icon(Icons.person_add_alt_1_outlined,
+                          color: kGold),
+                        title: Text(hi
+                          ? "किसी भरोसेमंद व्यक्ति को बताएं"
+                          : "Let someone else answer for me"),
+                        subtitle: Text(hi
+                          ? "जैसे आपकी बहन या परिवार का सदस्य"
+                          : "Choose a trusted person to help your family"),
+                        onTap: () => _standIn(context)),
                     ListTile(
                         leading: const Icon(Icons.directions_car_outlined,
                             color: kGold),

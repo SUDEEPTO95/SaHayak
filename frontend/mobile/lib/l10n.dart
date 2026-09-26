@@ -23,7 +23,14 @@ class L {
   String get needSub => hi ? "अस्पताल ने रक्त माँगा। पहले आपके भरोसे के लोग।" : "Hospital asked for blood. We start with people you trust.";
   String get donate => hi ? "मैं दे सकता/सकती हूँ" : "I can donate";
   String get donSub => hi ? "मैं दे सकता/सकती हूँ। फोन तब तक छिपा जब तक मैं कहूँ कि मैं जाऊँगा/जाऊँगी।" : "I can give. My phone stays hidden until I say I can go.";
-  String get more => hi ? "और — आपात नहीं" : "More — extra help, not the emergency";
+  String get more => hi ? "मदद के और तरीके" : "Explore more ways to help";
+  String get moreTitle => hi ? "सहायक का पूरा टूलकिट" : "Your SaHayak toolkit";
+  String get moreSummary => hi
+      ? "संदेश, परिवार, पास की मदद, रात के ब्लड बैंक और भी बहुत कुछ।"
+      : "Messages, family tools, nearby help, night banks and more.";
+  String get moreTap => hi
+      ? "आपातकाल के बाहर के कामों के लिए यहाँ टैप करें"
+      : "Tap to explore the tools around the emergency";
   String get locBodyDon => hi
       ? "सिर्फ़ यह कि पास किसे ज़रूरत है। पिन धुंधले जब तक आप ‘मैं जा सकता हूँ’ न दबाएँ।"
       : "We only show who needs you nearby. Pins stay fuzzy until you tap I can go.";

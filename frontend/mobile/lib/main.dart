@@ -650,12 +650,80 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => DonateScreen(hi: hi))),
                 ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => MoreScreen(hi: hi))),
-                  child: Text(t.more, style: const TextStyle(color: kGold)),
+                const SizedBox(height: 16),
+                Semantics(
+                  button: true,
+                  label: "${t.moreTitle}. ${t.moreSummary}",
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(22),
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => MoreScreen(hi: hi))),
+                      child: Ink(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2A1624), Color(0xFF123B39)],
+                          ),
+                          border: Border.all(color: kGold.withValues(alpha: 0.7)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: kGold.withValues(alpha: 0.14),
+                              blurRadius: 22,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: kGold.withValues(alpha: 0.18),
+                              ),
+                              child: const Icon(Icons.auto_awesome_rounded,
+                                  color: kGold, size: 27),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(t.moreTitle,
+                                      style: const TextStyle(
+                                          color: kGold,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800)),
+                                  const SizedBox(height: 4),
+                                  Text(t.moreSummary,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          height: 1.3,
+                                          fontSize: 13)),
+                                  const SizedBox(height: 7),
+                                  Text(t.moreTap,
+                                      style: TextStyle(
+                                          color: kGold.withValues(alpha: 0.9),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700)),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_rounded,
+                                color: kGold, size: 25),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
+                const Spacer(),
               ],
             ),
           ),
@@ -1247,6 +1315,31 @@ class MoreScreen extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             children: [
               Mark(line: t.more),
+              Glass(
+                child: Row(
+                  children: [
+                    const Icon(Icons.auto_awesome_rounded,
+                        color: kGold, size: 30),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(t.moreTitle,
+                              style: const TextStyle(
+                                  color: kGold,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 4),
+                          Text(t.moreSummary,
+                              style: const TextStyle(height: 1.35)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               Glass(
                 child: Column(
                   children: [

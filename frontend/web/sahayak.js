@@ -207,7 +207,7 @@ async function verify(){
   const body=channel==="mobile"?{channel:"mobile",phone:email.value,email:"",code:code.value}:{channel:"email",email:email.value,phone:"",code:code.value};
   const r=await fetch("/v1/auth/otp/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   const j=await r.json(); if(!j.token){ say("authStrip", j.human||"That code did not match."); return; }
-  token=j.token; localStorage.setItem("sahayak_token", token);
+  token=j.token; sessionStorage.setItem("sahayak_token", token);
   auth.classList.add("hidden"); home.classList.remove("hidden");
   if(seekerPhone.value) await fetch("/v1/me",{method:"POST",headers:h(),body:JSON.stringify({phone:seekerPhone.value})});
 }
@@ -729,13 +729,8 @@ saveDonor = async function() {
 };
 
 boot().then(async ()=>{
-  const t=localStorage.getItem("sahayak_token");
-  if(t){
-    token=t;
-    const me=await fetch("/v1/me",{headers:h()});
-    if(me.ok){ auth.classList.add("hidden"); home.classList.remove("hidden"); }
-    else localStorage.removeItem("sahayak_token");
-  }
+  token="";
+  sessionStorage.removeItem("sahayak_token");
   const off=localStorage.getItem("sahayak_offline");
   if(off && token){
     await fetch("/v1/offline-queue",{method:"POST",headers:h(),body:off});

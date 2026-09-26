@@ -433,17 +433,11 @@ class _GateScreenState extends State<GateScreen> {
   @override
   void initState() {
     super.initState();
-    api.restore().then((ok) {
+    SharedPreferences.getInstance().then((prefs) async {
+      api.token = null;
+      await prefs.remove("token");
       if (!mounted) return;
-      if (ok) {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (_) =>
-                    HomeScreen(hi: widget.hi, onLang: widget.onLang)));
-      } else {
-        setState(() => busy = false);
-      }
+      setState(() => busy = false);
     });
   }
 
@@ -479,7 +473,6 @@ class _GateScreenState extends State<GateScreen> {
     );
     if (j["token"] is String) {
       api.token = j["token"] as String;
-      await api.persistToken();
       final p = await SharedPreferences.getInstance();
       final queued = p.getString("offline_sos");
       if (queued != null) {

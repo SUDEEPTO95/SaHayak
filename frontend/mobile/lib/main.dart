@@ -2077,6 +2077,8 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
         return Column(
           children: [
             Text(widget.hi ? "ब्लड ग्रुप *" : "Blood group *"),
+            if (groupError != null)
+              Text(groupError!, style: const TextStyle(color: kSos)),
             TextField(
                 controller: who,
                 decoration: InputDecoration(
@@ -2099,15 +2101,20 @@ class _EasyExtraScreenState extends State<EasyExtraScreen> {
                           })))
                   .toList(),
             ),
-            if (groupError != null)
-              Text(groupError!, style: const TextStyle(color: kSos)),
             FilledButton.icon(
               onPressed: () async {
-                final groupValid = _requireGroup();
+                final groupValid = group.isNotEmpty;
                 final nameValid = who.text.trim().isNotEmpty;
-                setState(() => whoError = nameValid
-                    ? null
-                    : (widget.hi ? "नाम आवश्यक है।" : "Name is required."));
+                setState(() {
+                  groupError = groupValid
+                      ? null
+                      : (widget.hi
+                          ? "ब्लड ग्रुप चुनें।"
+                          : "Choose a blood group.");
+                  whoError = nameValid
+                      ? null
+                      : (widget.hi ? "नाम आवश्यक है।" : "Name is required.");
+                });
                 if (!groupValid || !nameValid) return;
                 final j = await api.post(
                     "/v1/family-notebook", {"who": who.text, "group": group});

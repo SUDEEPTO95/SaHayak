@@ -27,12 +27,28 @@ def _default_url() -> str:
     return f"sqlite:///{(_DATA_DIR / 'sahayak.db').as_posix()}"
 
 
-DATABASE_URL = os.getenv("DATABASE_URL", _default_url())
+def _database_url() -> str:
+    value = os.getenv("DATABASE_URL", _default_url()).strip()
+    if value.startswith("postgres://"):
+        return "postgresql+psycopg://" + value[len("postgres://"):]
+    if value.startswith("postgresql://"):
+        return "postgresql+psycopg://" + value[len("postgresql://"):]
+    return value
+
+
+DATABASE_URL = _database_url()
 
 _engine_kwargs: dict = {"future": True}
 if DATABASE_URL.startswith("sqlite"):
     # Allow use from FastAPI's thread pool; WAL below makes that safe.
     _engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    _engine_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_size": int(os.getenv("DB_POOL_SIZE", "10")),
+        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", "20")),
+        "pool_recycle": int(os.getenv("DB_POOL_RECYCLE_SECONDS", "1800")),
+    })
 
 engine = create_engine(DATABASE_URL, **_engine_kwargs)
 

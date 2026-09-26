@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import os
 import secrets
+from functools import lru_cache
 from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from pathlib import Path
 
 import time
@@ -47,6 +49,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=6)
 
 HUMAN_ERRORS = {
     "missing_token": "Please sign in again.",
@@ -210,6 +213,7 @@ def health() -> dict[str, str]:
 
 
 @app.get("/v1/meta")
+@lru_cache(maxsize=1)
 def meta() -> dict[str, Any]:
     return {
         "product": cfg["product_name"],

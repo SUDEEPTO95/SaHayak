@@ -2,6 +2,7 @@
 library;
 
 import "dart:convert";
+import "dart:io";
 
 import "package:http/http.dart" as http;
 import "package:shared_preferences/shared_preferences.dart";
@@ -15,43 +16,68 @@ const String kApiBase = String.fromEnvironment(
 
 class Api {
   String? token;
+  static const Duration _requestTimeout = Duration(seconds: 15);
 
   Map<String, String> get _h => {
         "Content-Type": "application/json",
         if (token != null) "Authorization": "Bearer $token",
       };
 
-  Future<Map<String, dynamic>> get(String path) async {
+  Future<bool> _showNetworkResult() async {
     try {
-      final res = await http.get(Uri.parse("$kApiBase$path"), headers: _h);
-      return _map(res.body, res.statusCode);
+      final host = Uri.parse(kApiBase).host;
+      await InternetAddress.lookup(host).timeout(const Duration(seconds: 2));
+      pauseBus.showCode("server_quiet");
+      return true;
     } catch (_) {
       pauseBus.showCode("no_internet");
-      return {"error": "no_internet", "human": "The line is quiet. You stay here."};
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> get(String path) async {
+    try {
+        final res = await http
+          .get(Uri.parse("$kApiBase$path"), headers: _h)
+          .timeout(_requestTimeout);
+      return _map(res.body, res.statusCode);
+    } catch (_) {
+      final online = await _showNetworkResult();
+      return online
+          ? {"error": "server_quiet", "human": "SaHayak could not answer."}
+          : {"error": "no_internet", "human": "The line is quiet. You stay here."};
     }
   }
 
   Future<Map<String, dynamic>> post(String path, Object body) async {
     try {
-      final res = await http.post(
-        Uri.parse("$kApiBase$path"),
-        headers: _h,
-        body: jsonEncode(body),
-      );
+      final res = await http
+          .post(
+            Uri.parse("$kApiBase$path"),
+            headers: _h,
+            body: jsonEncode(body),
+          )
+          .timeout(_requestTimeout);
       return _map(res.body, res.statusCode);
     } catch (_) {
-      pauseBus.showCode("no_internet");
-      return {"error": "no_internet", "human": "The line is quiet. You stay here."};
+      final online = await _showNetworkResult();
+      return online
+          ? {"error": "server_quiet", "human": "SaHayak could not answer."}
+          : {"error": "no_internet", "human": "The line is quiet. You stay here."};
     }
   }
 
   Future<Map<String, dynamic>> delete(String path) async {
     try {
-      final res = await http.delete(Uri.parse("$kApiBase$path"), headers: _h);
+        final res = await http
+          .delete(Uri.parse("$kApiBase$path"), headers: _h)
+          .timeout(_requestTimeout);
       return _map(res.body, res.statusCode);
     } catch (_) {
-      pauseBus.showCode("no_internet");
-      return {"error": "no_internet", "human": "The line is quiet. You stay here."};
+      final online = await _showNetworkResult();
+      return online
+          ? {"error": "server_quiet", "human": "SaHayak could not answer."}
+          : {"error": "no_internet", "human": "The line is quiet. You stay here."};
     }
   }
 

@@ -45,33 +45,10 @@ body::before {
 .pulse {
   width: 54px; height: 54px; border-radius: 18px;
   position: relative;
-  display: grid; place-items: center;
-  box-shadow: 0 0 40px rgba(196,43,74,.45);
-  background: #140810;
+  flex: 0 0 54px;
+  background: url("/app/sahayak-logo.svg") center / contain no-repeat;
 }
-.pulse::before {
-  content: "";
-  position: absolute; inset: 0;
-  border-radius: 18px;
-  background: conic-gradient(from 140deg, var(--gold), var(--rose), var(--teal), var(--gold));
-  animation: spin 12s linear infinite;
-  z-index: 0;
-}
-.pulse::after {
-  content: "";
-  position: absolute; inset: 6px;
-  border-radius: 14px;
-  background: #140810;
-  z-index: 1;
-}
-.pulse span {
-  width: 42px; height: 42px; border-radius: 14px;
-  display: grid; place-items: center;
-  position: relative; z-index: 2;
-  background: transparent;
-  color: var(--gold);
-}
-.pulse .drops { width: 28px; height: 24px; display: block; }
+.pulse::before, .pulse::after, .pulse span { display: none; }
 .giant {
   min-height: 108px; font-size: 26px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; text-align: left; padding: 18px 20px;
 }

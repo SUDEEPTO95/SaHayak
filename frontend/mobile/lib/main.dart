@@ -3,6 +3,7 @@ library;
 
 import "dart:convert";
 import "dart:ui";
+import "dart:ui" as ui;
 
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -159,11 +160,7 @@ class Mark extends StatelessWidget {
         Container(
           width: 48,
           height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const SweepGradient(colors: [kGold, kSos, kTrust, kGold]),
-          ),
-          child: const Center(child: ThreeDrops()),
+          child: const SahayakLogo(),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -196,31 +193,87 @@ class Mark extends StatelessWidget {
 
 const kTaglineSoft = "blood help nearby";
 
-class ThreeDrops extends StatelessWidget {
-  const ThreeDrops({super.key});
+class SahayakLogo extends StatelessWidget {
+  const SahayakLogo({super.key, this.size = 48});
+  final double size;
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 36,
-      height: 32,
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Positioned(
-              left: 0,
-              bottom: 4,
-              child: Icon(Icons.water_drop_rounded,
-                  size: 14, color: kGold.withValues(alpha: 0.7))),
-          Positioned(
-              right: 0,
-              bottom: 6,
-              child: Icon(Icons.water_drop_rounded,
-                  size: 10, color: kGold.withValues(alpha: 0.5))),
-          const Icon(Icons.water_drop_rounded, size: 22, color: kGold),
-        ],
-      ),
+    return SizedBox.square(
+      dimension: size,
+      child: const CustomPaint(painter: _SahayakLogoPainter()),
     );
   }
+}
+
+class _SahayakLogoPainter extends CustomPainter {
+  const _SahayakLogoPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / 82, size.height / 82);
+
+    final outer = RRect.fromLTRBR(0, 0, 82, 82, const Radius.circular(25));
+    canvas.drawRRect(outer, Paint()..color = kInk);
+    canvas.drawRRect(
+      RRect.fromLTRBR(2.5, 2.5, 79.5, 79.5, const Radius.circular(22.5)),
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [kGold, kSos, kTrust],
+        ).createShader(const Rect.fromLTWH(0, 0, 82, 82))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5,
+    );
+
+    final heart = ui.Path()
+      ..moveTo(41, 67)
+      ..cubicTo(34, 62, 18, 53, 18, 37)
+      ..cubicTo(18, 28, 25, 22, 33, 22)
+      ..cubicTo(38, 22, 42, 25, 45, 29)
+      ..cubicTo(48, 25, 52, 22, 57, 22)
+      ..cubicTo(65, 22, 72, 28, 72, 37)
+      ..cubicTo(72, 53, 56, 62, 41, 67)
+      ..close();
+    canvas.drawPath(heart, Paint()..color = kSos);
+
+    final drop = ui.Path()
+      ..moveTo(41, 27)
+      ..cubicTo(41, 27, 30, 41, 30, 49)
+      ..cubicTo(30, 56, 35, 61, 41, 61)
+      ..cubicTo(47, 61, 52, 56, 52, 49)
+      ..cubicTo(52, 41, 41, 27, 41, 27)
+      ..close();
+    canvas.drawPath(drop, Paint()..color = kGold);
+
+    final innerDrop = ui.Path()
+      ..moveTo(41, 35)
+      ..cubicTo(41, 35, 35, 44, 35, 49)
+      ..cubicTo(35, 53, 38, 55, 41, 55)
+      ..cubicTo(44, 55, 47, 53, 47, 49)
+      ..cubicTo(47, 44, 41, 35, 41, 35)
+      ..close();
+    canvas.drawPath(innerDrop, Paint()..color = const Color(0xFFFFF7E8));
+
+    final hands = ui.Path()
+      ..moveTo(24, 45)
+      ..cubicTo(28, 46, 33, 49, 34, 53)
+      ..cubicTo(30, 55, 25, 52, 22, 49)
+      ..cubicTo(20, 47, 21, 46, 24, 45)
+      ..close()
+      ..moveTo(58, 45)
+      ..cubicTo(54, 46, 49, 49, 48, 53)
+      ..cubicTo(52, 55, 57, 52, 60, 49)
+      ..cubicTo(62, 47, 61, 46, 58, 45)
+      ..close();
+    canvas.drawPath(hands, Paint()..color = const Color(0xFFFFF7E8));
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _SahayakLogoPainter oldDelegate) => false;
 }
 
 class Giant extends StatelessWidget {
@@ -303,7 +356,7 @@ class PauseVeil extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const ThreeDrops(),
+                    const SahayakLogo(size: 48),
                     const SizedBox(height: 12),
                     const Text("A SMALL PAUSE",
                         style: TextStyle(

@@ -1,24 +1,26 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="82"
+    android:viewportHeight="82">
     <path
         android:fillColor="#0C0610"
-        android:pathData="M0,0h108v108h-108z" />
+        android:pathData="M0,0h82v82h-82z" />
+    <path
+        android:fillColor="#0C0610"
+        android:strokeColor="#E8C07A"
+        android:strokeWidth="5"
+        android:pathData="M25,2h32c13.8,0 23,9.2 23,23v32c0,13.8 -9.2,23 -23,23h-32c-13.8,0 -23,-9.2 -23,-23v-32c0,-13.8 9.2,-23 23,-23z" />
     <path
         android:fillColor="#C42B4A"
-        android:pathData="M54,88C46,82 20,66 20,43C20,30 30,21 42,21C49,21 54,25 58,31C62,25 67,21 75,21C87,21 96,30 96,43C96,66 70,82 54,88z" />
+        android:pathData="M41,67C34,62 18,53 18,37C18,28 25,22 33,22C38,22 42,25 45,29C48,25 52,22 57,22C65,22 72,28 72,37C72,53 56,62 41,67z" />
     <path
         android:fillColor="#E8C07A"
-        android:pathData="M54,28C54,28 38,48 38,60C38,70 45,77 54,77C63,77 70,70 70,60C70,48 54,28 54,28z" />
+        android:pathData="M41,27C41,27 30,41 30,49C30,56 35,61 41,61C47,61 52,56 52,49C52,41 41,27 41,27z" />
     <path
         android:fillColor="#FFF7E8"
-        android:pathData="M54,39C54,39 45,51 45,58C45,63 49,67 54,67C59,67 63,63 63,58C63,51 54,39 54,39z" />
+        android:pathData="M41,35C41,35 35,44 35,49C35,53 38,55 41,55C44,55 47,53 47,49C47,44 41,35 41,35z" />
     <path
         android:fillColor="#FFF7E8"
-        android:pathData="M27,53C27,53 31,56 36,58C40,60 43,64 42,68C41,72 37,73 33,71L25,66C22,64 21,60 23,57C24,55 25,54 27,53z" />
-    <path
-        android:fillColor="#FFF7E8"
-        android:pathData="M81,53C81,53 77,56 72,58C68,60 65,64 66,68C67,72 71,73 75,71L83,66C86,64 87,60 85,57C84,55 83,54 81,53z" />
+        android:pathData="M24,45C28,46 33,49 34,53C30,55 25,52 22,49C20,47 21,46 24,45zM58,45C54,46 49,49 48,53C52,55 57,52 60,49C62,47 61,46 58,45z" />
 </vector>

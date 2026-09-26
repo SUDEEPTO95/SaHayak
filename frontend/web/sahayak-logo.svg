@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="82" height="82" viewBox="0 0 82 82" role="img" aria-labelledby="title">
+  <title id="title">SaHayak heart and helping hands logo</title>
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8c07a"/>
+      <stop offset="0.5" stop-color="#c42b4a"/>
+      <stop offset="1" stop-color="#1aa58a"/>
+    </linearGradient>
+  </defs>
+  <rect width="82" height="82" rx="25" fill="#0c0610" stroke="url(#brand)" stroke-width="5"/>
+  <path d="M41 67C34 62 18 53 18 37C18 28 25 22 33 22C38 22 42 25 45 29C48 25 52 22 57 22C65 22 72 28 72 37C72 53 56 62 41 67Z" fill="#c42b4a"/>
+  <path d="M41 27C41 27 30 41 30 49C30 56 35 61 41 61C47 61 52 56 52 49C52 41 41 27 41 27Z" fill="#e8c07a"/>
+  <path d="M41 35C41 35 35 44 35 49C35 53 38 55 41 55C44 55 47 53 47 49C47 44 41 35 41 35Z" fill="#fff7e8"/>
+  <path d="M24 45C28 46 33 49 34 53C30 55 25 52 22 49C20 47 21 46 24 45ZM58 45C54 46 49 49 48 53C52 55 57 52 60 49C62 47 61 46 58 45Z" fill="#fff7e8"/>
+</svg>
